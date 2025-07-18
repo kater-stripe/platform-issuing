@@ -1,0 +1,35 @@
+{
+  "name": "stripe-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "webhook:setup": "node scripts/setup-webhook.js",
+    "webhook:list": "node scripts/list-webhooks.js",
+    "webhook:test": "node scripts/list-webhooks.js test"
+  },
+  "dependencies": {
+    "@stripe/connect-js": "^3.3.25",
+    "@stripe/react-connect-js": "^3.3.24",
+    "@stripe/stripe-js": "^7.4.0",
+    "autoprefixer": "^10.4.21",
+    "next": "^13.5.6",
+    "postcss": "^8.5.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stripe": "^18.3.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.4",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

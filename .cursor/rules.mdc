@@ -1,0 +1,525 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Pluxee x Stripe Live Demo - Cursor Rules
+
+## 🎯 Demo Context
+- **Audience**: Pluxee Product & Tech teams
+- **Story**: Olivia Dubois (BNP Paribas employee) using corporate card with spending controls
+- **Goal**: Show how easy Stripe Connect + Issuing integration is
+- **Location**: France (FR) - all configurations should use French settings
+
+## 🏗️ Project Structure
+
+### Directory Organization
+```
+/src
+├── /app
+│   ├── layout.tsx (Pluxee banner)
+│   ├── page.tsx (Welcome/Overview)
+│   ├── /onboarding
+│   ├── /customer-dashboard
+│   ├── /manage-cards
+│   ├── /webhooks
+│   ├── /checkout
+│   │   ├── /paul (Restaurant)
+│   │   ├── /uber (Transport)
+│   │   ├── /sephora (Beauty)
+│   │   └── /gas-station (Blocked)
+│   └── /api
+├── /lib
+│   ├── stripe.ts
+│   ├── config.ts
+│   ├── storage.ts
+│   └── types.ts
+└── /components
+    ├── /ui
+    ├── /stripe
+    └── /demo
+```
+
+## 🇫🇷 French Configuration Standards
+
+### Always Use French Settings
+- `country: 'FR'`
+- `currency: 'eur'`
+- French phone numbers: `+33xxxxxxxxx`
+- French addresses with proper postal codes
+- French business registration numbers (SIREN/SIRET format)
+- French MCCs when applicable
+
+### Address Format
+```typescript
+{
+  city: 'Paris',
+  country: 'FR',
+  line1: '12 Rue de la Paix',
+  line2: 'Appartement 3',
+  postal_code: '75001',
+  state: 'Île-de-France'
+}
+```
+
+### Demo Data Pattern
+```typescript
+// Use realistic French data from demo-config.ts
+export const FRENCH_DEMO_DATA = {
+  companies: {
+    testparis: {
+      name: 'BNP Paribas',
+      email: 'contact@testparis.fr',
+      siren: '662042449',
+      address: {
+        line1: '16 Boulevard des Italiens',
+        city: 'Paris',
+        postal_code: '75009',
+        country: 'FR'
+      }
+    }
+  },
+  employees: {
+    olivia: {
+      first_name: 'Olivia',
+      last_name: 'Dubois',
+      email: 'olivia.dubois@testparis.fr',
+      phone: '+33123456789'
+    }
+  }
+}
+```
+
+## 🔧 Stripe Integration Patterns
+
+### Stripe Client Configuration
+```typescript
+// lib/stripe.ts
+import Stripe from 'stripe';
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+  appInfo: {
+    name: 'Pluxee Demo',
+    version: '1.0.0',
+  },
+});
+
+export const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
+```
+
+### Connected Account Creation Pattern
+```typescript
+// Always create accounts for France
+const account = await stripe.accounts.create({
+  country: 'FR',
+  capabilities: {
+    card_issuing: { requested: true },
+    card_payments: { requested: true },
+    transfers: { requested: true },
+  },
+  type: 'custom',
+  business_type: 'company',
+  // ... French configuration
+});
+```
+
+### Error Handling for Live Demo
+```typescript
+// Always wrap Stripe calls in try-catch with user-friendly messages
+try {
+  const result = await stripeOperation();
+  return { success: true, data: result };
+} catch (error) {
+  console.error('Stripe Error:', error);
+  return { 
+    success: false, 
+    error: error instanceof Error ? error.message : 'Une erreur est survenue' 
+  };
+}
+```
+
+## 💾 Local Storage Patterns
+
+### Demo State Management
+```typescript
+// lib/storage.ts
+export interface DemoState {
+  connectedAccounts: Record<string, string>; // email -> account_id
+  cardholders: Record<string, string>; // email -> cardholder_id
+  cards: Record<string, string>; // cardholder_id -> card_id
+  currentUser?: string; // current user email
+}
+
+export const getDemoState = (): DemoState => {
+  if (typeof window === 'undefined') return { connectedAccounts: {}, cardholders: {}, cards: {} };
+  const stored = localStorage.getItem('pluxee-demo-state');
+  return stored ? JSON.parse(stored) : { connectedAccounts: {}, cardholders: {}, cards: {} };
+};
+
+export const saveDemoState = (state: DemoState) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('pluxee-demo-state', JSON.stringify(state));
+  }
+};
+```
+
+### User Session Pattern
+```typescript
+// Always check if user has created account/cardholder before operations
+const state = getDemoState();
+const accountId = state.connectedAccounts[userEmail];
+if (!accountId) {
+  // Redirect to onboarding or show create account flow
+}
+```
+
+## 🎨 UI/UX Guidelines
+
+### Tailwind Styling Standards
+- Primary color: `bg-green-600` (Pluxee brand)
+- Success states: `bg-green-50 text-green-800`
+- Error states: `bg-red-50 text-red-800`
+- Loading states: `animate-pulse`
+- Cards: `bg-white shadow-md rounded-lg p-6`
+- Buttons: `bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md`
+
+### Form Patterns
+```typescript
+// Always prefill forms with demo data
+const [formData, setFormData] = useState({
+  firstName: 'Olivia',
+  lastName: 'Dubois',
+  email: 'olivia.dubois@testparis.fr',
+  // ... more prefilled data
+});
+```
+
+### Loading States
+```typescript
+const [loading, setLoading] = useState(false);
+
+// Show loading during API calls
+if (loading) {
+  return (
+    <div className="flex items-center justify-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      <span className="ml-2">Traitement en cours...</span>
+    </div>
+  );
+}
+```
+
+### Success/Error Feedback
+```typescript
+const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+// Show feedback after operations
+{message && (
+  <div className={`p-4 rounded-md ${
+    message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+  }`}>
+    {message.text}
+  </div>
+)}
+```
+
+## 🛠️ API Route Patterns
+
+### Standard API Response Pattern
+```typescript
+// Always return consistent response format
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const result = await performStripeOperation(body);
+    
+    return NextResponse.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error'
+    }, { status: 500 });
+  }
+}
+```
+
+### Webhook Handler Pattern
+```typescript
+// app/api/webhooks/route.ts
+export async function POST(request: Request) {
+  const body = await request.text();
+  const signature = request.headers.get('stripe-signature')!;
+  
+  try {
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+    
+    // Handle different event types
+    switch (event.type) {
+      case 'issuing_authorization.created':
+        await handleAuthorizationCreated(event.data.object);
+        break;
+      case 'issuing_authorization.updated':
+        await handleAuthorizationUpdated(event.data.object);
+        break;
+      // ... more event types
+    }
+    
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error('Webhook Error:', error);
+    return NextResponse.json({ error: 'Webhook failed' }, { status: 400 });
+  }
+}
+```
+
+## 💳 MCC & Spending Controls
+
+### MCC Configuration
+```typescript
+// lib/config.ts
+export const MCC_CATEGORIES = {
+  allowed: {
+    '5812': { name: 'Restaurants', example: 'Paul Boulangerie' },
+    '4121': { name: 'Taxi/Limousines', example: 'Uber' },
+    '5977': { name: 'Cosmetic Stores', example: 'Sephora' },
+  },
+  blocked: {
+    '5541': { name: 'Service Stations', example: 'Station-service' },
+    '7995': { name: 'Betting/Gambling', example: 'Paris sportifs' },
+  }
+};
+```
+
+### Spending Limits Pattern
+```typescript
+// Create spending controls with French amounts (cents)
+const spendingControls = {
+  spending_limits: [
+    {
+      amount: 50000, // €500
+      interval: 'monthly',
+      categories: ['gas_stations'] // Block gas stations
+    },
+    {
+      amount: 2500, // €25
+      interval: 'daily'
+    }
+  ]
+};
+```
+
+## 🔗 Component Patterns
+
+### Stripe Embedded Components
+```typescript
+// components/stripe/ConnectOnboarding.tsx
+import { ConnectComponentsProvider, ConnectAccountOnboarding } from '@stripe/react-connect-js';
+
+export function ConnectOnboarding({ clientSecret }: { clientSecret: string }) {
+  return (
+    <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
+      <ConnectAccountOnboarding
+        onExit={() => {
+          // Handle exit
+        }}
+        onComplete={() => {
+          // Handle completion - save account ID to local storage
+        }}
+      />
+    </ConnectComponentsProvider>
+  );
+}
+```
+
+### Card Display Component
+```typescript
+// components/demo/CardDisplay.tsx
+export function CardDisplay({ card, cardholder }: { card: any, cardholder: any }) {
+  return (
+    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-xl shadow-lg">
+      <div className="mb-4">
+        <h3 className="text-sm opacity-80">Titulaire</h3>
+        <p className="font-semibold">{cardholder.name}</p>
+      </div>
+      <div className="flex justify-between items-end">
+        <div>
+          <p className="text-sm opacity-80">Numéro de carte</p>
+          <p className="font-mono">**** **** **** {card.last4}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm opacity-80">Expire</p>
+          <p>{card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+## 📊 Demo Flow Orchestration
+
+### Page Navigation Pattern
+```typescript
+// Always provide clear navigation between demo steps
+export function DemoNavigation({ currentStep }: { currentStep: string }) {
+  const steps = [
+    { id: 'onboarding', name: 'Onboarding', path: '/onboarding' },
+    { id: 'dashboard', name: 'Dashboard', path: '/customer-dashboard' },
+    { id: 'cards', name: 'Card Management', path: '/manage-cards' },
+    { id: 'webhooks', name: 'Real-time Events', path: '/webhooks' },
+    { id: 'checkout', name: 'Payments', path: '/checkout' },
+  ];
+  
+  return (
+    <nav className="flex space-x-4 mb-8">
+      {steps.map((step) => (
+        <Link
+          key={step.id}
+          href={step.path}
+          className={`px-4 py-2 rounded-md ${
+            currentStep === step.id 
+              ? 'bg-green-600 text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          {step.name}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+```
+
+### Pre-filled Demo Data Usage
+```typescript
+// Always provide one-click demo data population
+export function QuickDemoButton({ onPopulate }: { onPopulate: (data: any) => void }) {
+  return (
+    <button
+      onClick={() => onPopulate(FRENCH_DEMO_DATA.employees.olivia)}
+      className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm hover:bg-blue-200"
+    >
+      📝 Use Olivia Dubois's data
+    </button>
+  );
+}
+```
+
+## 🚨 Live Demo Best Practices
+
+### Always Handle Edge Cases
+- Network timeouts: Show user-friendly messages
+- API rate limits: Implement proper retry logic
+- Invalid data: Validate before Stripe calls
+- Missing environment variables: Show clear setup instructions
+
+### Performance for Live Demo
+- Preload Stripe.js: `<link rel="preload" href="https://js.stripe.com/v3/" as="script" />`
+- Cache static data: Use React.memo for stable components
+- Minimize API calls: Batch operations when possible
+- Use loading states: Always show progress during operations
+
+### Error Recovery Patterns
+```typescript
+// Provide fallback options when things go wrong
+if (!stripeAccount) {
+  return (
+    <div className="text-center py-8">
+      <p className="text-gray-600 mb-4">Aucun compte connecté trouvé.</p>
+      <Link href="/onboarding" className="bg-green-600 text-white px-4 py-2 rounded-md">
+        Créer un compte maintenant
+      </Link>
+    </div>
+  );
+}
+```
+
+## 🎤 Presentation Helpers
+
+### Code Comments for Live Demo
+```typescript
+// 🎯 DEMO: This creates a French connected account with issuing capabilities
+// 💡 EXPLAIN: Stripe handles all the regulatory complexity
+// ⚡ LIVE: Show how simple this API call is
+const account = await stripe.accounts.create({
+  country: 'FR', // 🇫🇷 Always France for this demo
+  capabilities: {
+    card_issuing: { requested: true }, // 💳 Enable card creation
+    card_payments: { requested: true }, // 💰 Accept payments
+  },
+  // ... more configuration
+});
+```
+
+### Console Logging for Demo
+```typescript
+// Add helpful console logs for live demo
+console.log('🎯 Creating connected account for:', companyName);
+console.log('✅ Account created successfully:', account.id);
+console.log('💳 Card created for:', cardholderName, 'Card ID:', card.id);
+```
+
+## 🔐 Security for Demo
+
+### Environment Variables
+```bash
+# .env.local
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_SITE_URL=https://your-demo.vercel.app
+```
+
+### API Key Usage
+- Never expose secret keys in frontend code
+- Always use publishable keys for client-side operations
+- Validate webhook signatures
+- Use test mode for demo
+
+## 📱 Mobile Responsiveness
+
+### Responsive Design Patterns
+```typescript
+// Always make components mobile-friendly
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {/* Cards automatically stack on mobile */}
+</div>
+
+// Mobile-first navigation
+<div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+  {/* Navigation items */}
+</div>
+```
+
+---
+
+## 🎯 Key Reminders for Live Demo
+
+1. **Keep it Simple**: Focus on Stripe's ease of use, not complex logic
+2. **French First**: All data, addresses, and configurations should be French
+3. **Visual Feedback**: Always show loading states and success messages
+4. **Error Handling**: Gracefully handle errors without breaking the demo
+5. **Local Storage**: Persist demo state so multiple users can play
+6. **Prefilled Data**: Make it easy to populate forms with realistic data
+7. **Clear Navigation**: Make it obvious how to move between demo steps
+8. **Performance**: Ensure smooth experience during live presentation
+
+## 🚀 Deployment Checklist
+
+- [ ] Environment variables set in Vercel
+- [ ] Webhook endpoint configured in Stripe dashboard
+- [ ] Test full flow once before demo
+- [ ] Verify mobile responsiveness
+- [ ] Check all prefilled data is realistic and French
+- [ ] Ensure local storage persists across browser sessions 
