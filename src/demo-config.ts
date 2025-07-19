@@ -206,7 +206,7 @@ export const DEMO_CONFIG = {
       id: 'onboarding',
       name: 'Connect Onboarding',
       duration: '10 min', 
-      description: 'Huel onboarding with embedded component'
+              description: 'Test London Ltd onboarding with embedded component'
     },
     {
       id: 'dashboard',

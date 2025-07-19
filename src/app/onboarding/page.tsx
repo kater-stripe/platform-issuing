@@ -7,7 +7,13 @@ import { loadConnectAndInitialize } from '@stripe/connect-js';
 
 export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState('Huel');
+  const [selectedCompany, setSelectedCompany] = useState(() => {
+    // Get company name from localStorage or use fallback
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('demo-company-name') || 'Test London Ltd';
+    }
+    return 'Test London Ltd';
+  });
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [step, setStep] = useState<'select' | 'create' | 'onboard' | 'complete'>('select');
@@ -20,13 +26,12 @@ export default function OnboardingPage() {
     // Clear any potentially stale account data on component mount
     const clearStaleData = () => {
           const existingAccountId = localStorage.getItem('demo-account-id');
-    const existingCompany = localStorage.getItem('demo-company-name');
-      
+    
       // For demo purposes, always start fresh to avoid account access issues
-      if (existingAccountId || existingCompany) {
+      if (existingAccountId) {
         console.log('Clearing potentially stale account data');
         localStorage.removeItem('demo-account-id');
-        localStorage.removeItem('demo-company-name');
+        // Note: Keep company name for consistency across pages
       }
     };
     

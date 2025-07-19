@@ -17,7 +17,7 @@ export default function Settings() {
         </p>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-blue-900 mb-2">
-            Demo Story: Olivia Dubois at Huel
+                              Demo Story: Olivia Dubois at Test London Ltd
           </h2>
           <p className="text-blue-800">
             Follow along as we build a complete corporate card platform, from company onboarding 
@@ -32,7 +32,7 @@ export default function Settings() {
             1. Connect Onboarding
           </h3>
           <p className="text-gray-600 mb-4">
-            Set up Huel as a connected account using Stripe's embedded onboarding
+                              Set up Test London Ltd as a connected account using Stripe's embedded onboarding
           </p>
           <button
             onClick={() => router.push('/onboarding')}

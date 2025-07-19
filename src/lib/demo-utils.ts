@@ -25,7 +25,7 @@ export function getDefaultFunding() {
 
 // Company and employee helpers
 export function getCompanyInfo() {
-  return DEMO_CONFIG.companies[0]; // Huel (primary demo company)
+  return DEMO_CONFIG.companies[0]; // Test London Ltd (primary demo company)
 }
 
 export function getEmployeeInfo(index = 0) {
@@ -246,7 +246,7 @@ export function handleDemoError(error: any, context: string): string {
 // Demo success messages
 export function getDemoSuccessMessage(context: string): string {
   const messages: Record<string, string> = {
-    onboarding: '🎉 Huel onboarding completed successfully!',
+    onboarding: '🎉 Test London Ltd onboarding completed successfully!',
     funding: '💰 Account funded successfully! Ready to issue cards.',
     cardholder: '👤 Olivia Dubois created as cardholder!',
     card: '💳 Virtual card issued with spending controls!',

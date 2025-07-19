@@ -49,7 +49,7 @@ export default function ManageCardsPage() {
       const storageAccountId = localStorage.getItem('demo-account-id');
       const currentAccountId = urlAccountId || storageAccountId;
       
-      const savedCompanyName = localStorage.getItem('demo-company-name') || 'Huel';
+      const savedCompanyName = localStorage.getItem('demo-company-name') || 'Test London Ltd';
       setCompanyName(savedCompanyName);
       setAccountId(currentAccountId || '');
 
