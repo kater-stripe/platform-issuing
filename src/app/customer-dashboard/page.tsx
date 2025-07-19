@@ -133,6 +133,35 @@ export default function CustomerDashboard() {
     }
   };
 
+  const handleCompleteOnboarding = async () => {
+    const accountId = localStorage.getItem('demo-account-id');
+    if (!accountId) return;
+
+    try {
+      const response = await fetch('/api/connect/account-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          accountId,
+          refresh_url: window.location.href,
+          return_url: `${window.location.origin}/customer-dashboard?account_id=${accountId}&setup=complete`
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Redirect to Stripe's onboarding flow
+        window.location.href = result.data.url;
+      } else {
+        setError(result.error || 'Error generating account link');
+      }
+    } catch (err) {
+      console.error('Failed to generate account link:', err);
+      setError('Error generating account link');
+    }
+  };
+
   const getCompanyData = () => {
     return DEMO_CONFIG.companies.find(c => c.name === companyName) || DEMO_CONFIG.companies[0];
   };
@@ -240,10 +269,26 @@ export default function CustomerDashboard() {
             </div>
 
             {accountStatus?.requirements && accountStatus.requirements.currently_due.length > 0 && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800 text-sm">
-                  <strong>Required actions:</strong> {accountStatus.requirements.currently_due.length} item(s) to complete
-                </p>
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-yellow-800 text-sm font-medium">
+                      <strong>⚠️ Account Setup Incomplete</strong>
+                    </p>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      {accountStatus.requirements.currently_due.length} verification step(s) required to activate all features
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCompleteOnboarding}
+                    className="ml-4 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700 font-medium transition-colors flex items-center space-x-1"
+                  >
+                    <span>Complete Setup</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
           </div>
