@@ -274,15 +274,7 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
   }
 }
 
-/**
- * Format currency for display
- */
-function formatCurrency(amount: number, currency: string = 'gbp') {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-  }).format(amount / 100);
-}
+
 
 // Handle GET requests for webhook endpoint info
 export async function GET() {
