@@ -47,7 +47,7 @@ export default function CustomerDashboard() {
     const storageAccountId = localStorage.getItem('demo-account-id');
     const accountId = urlAccountId || storageAccountId;
     
-    const savedCompanyName = localStorage.getItem('demo-company-name') || 'Huel';
+    const savedCompanyName = localStorage.getItem('demo-company-name') || 'Test London Ltd';
     setCompanyName(savedCompanyName);
 
     if (accountId) {
