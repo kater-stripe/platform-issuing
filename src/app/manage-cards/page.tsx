@@ -10,6 +10,22 @@ import {
 } from '@stripe/react-connect-js';
 import { DEMO_CONFIG } from '@/demo-config';
 
+interface AccountStatus {
+  id: string;
+  charges_enabled: boolean;
+  details_submitted: boolean;
+  payouts_enabled: boolean;
+  requirements?: {
+    currently_due: string[];
+    eventually_due: string[];
+    past_due: string[];
+  };
+  business_profile?: {
+    name?: string;
+    mcc?: string;
+  };
+}
+
 interface ManualCardholderData {
   name: string;
   email: string;
@@ -19,7 +35,7 @@ interface ManualCardholderData {
 export default function ManageCardsPage() {
   const [stripeConnectInstance, setStripeConnectInstance] = useState(null);
   const [accountId, setAccountId] = useState<string>('');
-  const [companyName, setCompanyName] = useState<string>('');
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateCardholder, setShowCreateCardholder] = useState(false);
@@ -42,6 +58,22 @@ export default function ManageCardsPage() {
     initializeStripeConnect();
   }, []);
 
+  const fetchAccountStatus = async (accountId: string) => {
+    try {
+      const response = await fetch(`/api/connect/onboarding?account_id=${accountId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setAccountStatus(result.data);
+      } else {
+        setError('Error retrieving account status');
+      }
+    } catch (err) {
+      console.error('Failed to fetch account status:', err);
+      setError('Connection error');
+    }
+  };
+
   const initializeStripeConnect = async () => {
     try {
       // Get account ID from URL parameter first, then fallback to localStorage
@@ -49,8 +81,6 @@ export default function ManageCardsPage() {
       const storageAccountId = localStorage.getItem('demo-account-id');
       const currentAccountId = urlAccountId || storageAccountId;
       
-      const savedCompanyName = localStorage.getItem('demo-company-name') || 'Test London Ltd';
-      setCompanyName(savedCompanyName);
       setAccountId(currentAccountId || '');
 
       if (!currentAccountId) {
@@ -58,6 +88,9 @@ export default function ManageCardsPage() {
         setLoading(false);
         return;
       }
+
+      // Fetch account status to get company name
+      await fetchAccountStatus(currentAccountId);
 
       // Update localStorage if we got the ID from URL
       if (urlAccountId && urlAccountId !== storageAccountId) {
@@ -135,7 +168,7 @@ export default function ManageCardsPage() {
     setError(null);
 
     try {
-      const company = DEMO_CONFIG.companies.find(c => c.name === companyName) || DEMO_CONFIG.companies[0];
+      const company = DEMO_CONFIG.companies[0]; // Use first company as default
       
       const response = await fetch('/api/issuing/cardholders', {
         method: 'POST',
@@ -177,7 +210,7 @@ export default function ManageCardsPage() {
     setError(null);
 
     try {
-      const company = DEMO_CONFIG.companies.find(c => c.name === companyName) || DEMO_CONFIG.companies[0];
+      const company = DEMO_CONFIG.companies[0]; // Use first company as default
       
       const response = await fetch('/api/issuing/cardholders', {
         method: 'POST',
@@ -248,7 +281,7 @@ export default function ManageCardsPage() {
   };
 
   const getCompanyData = () => {
-    return DEMO_CONFIG.companies.find(c => c.name === companyName) || DEMO_CONFIG.companies[0];
+    return DEMO_CONFIG.companies[0]; // Use first company as default
   };
 
   // Ephemeral key callback for PAN/PIN viewing
@@ -324,7 +357,7 @@ export default function ManageCardsPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <div className="text-2xl font-bold text-green-600">
-                🏢 {companyName}
+                🏢 {accountStatus?.business_profile?.name || 'Company Dashboard'}
               </div>
               <div className="ml-4 text-sm text-gray-500">
                 Business Card Management

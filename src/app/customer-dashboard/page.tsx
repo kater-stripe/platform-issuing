@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { DEMO_CONFIG } from '@/demo-config';
 import { getConnectedAccount, formatCurrency } from '@/lib/storage';
 
 interface AccountStatus {
@@ -35,7 +34,6 @@ export default function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
   const [fundingLoading, setFundingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [companyName, setCompanyName] = useState<string>('');
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -47,8 +45,7 @@ export default function CustomerDashboard() {
     const storageAccountId = localStorage.getItem('demo-account-id');
     const accountId = urlAccountId || storageAccountId;
     
-    const savedCompanyName = localStorage.getItem('demo-company-name') || 'Test London Ltd';
-    setCompanyName(savedCompanyName);
+
 
     if (accountId) {
       // Update localStorage if we got the ID from URL
@@ -162,9 +159,7 @@ export default function CustomerDashboard() {
     }
   };
 
-  const getCompanyData = () => {
-    return DEMO_CONFIG.companies.find(c => c.name === companyName) || DEMO_CONFIG.companies[0];
-  };
+
 
   const getStatusColor = (enabled: boolean) => {
     return enabled ? 'text-green-600' : 'text-yellow-600';
@@ -207,7 +202,7 @@ export default function CustomerDashboard() {
     );
   }
 
-  const company = getCompanyData();
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -220,7 +215,7 @@ export default function CustomerDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <p className="text-green-800">
-                <strong>Integration completed successfully!</strong> Your {company.name} account is now connected.
+                <strong>Integration completed successfully!</strong> Your {accountStatus?.business_profile?.name || 'account'} account is now connected.
               </p>
             </div>
           </div>
@@ -230,8 +225,10 @@ export default function CustomerDashboard() {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
-              <p className="text-gray-600 mt-1">Company dashboard</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {accountStatus?.business_profile?.name || 'Company Dashboard'}
+              </h1>
+              <p className="text-gray-600 mt-1">Connected Account Dashboard</p>
             </div>
             <div className="text-right">
                               <p className="text-sm text-gray-500">Connected account</p>
@@ -330,34 +327,7 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* Company Info */}
-        <div className="mt-6 bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Company information</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Details</h3>
-              <div className="space-y-2 text-sm">
-                <p><strong>Name:</strong> {company.name}</p>
-                <p><strong>Email:</strong> {company.email}</p>
-                                  <p><strong>Country:</strong> {company.country}</p>
-                                  <p><strong>Type:</strong> {company.business_type === 'company' ? 'Company' : 'Individual'}</p>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Employees ({company.employees.length})</h3>
-              <div className="space-y-2 text-sm">
-                {company.employees.slice(0, 3).map((employee, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span>{employee.name}</span>
-                    <span className="text-gray-600">{employee.role}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         {/* Next Steps */}
         <div className="mt-6 bg-white rounded-xl shadow-sm p-6">
