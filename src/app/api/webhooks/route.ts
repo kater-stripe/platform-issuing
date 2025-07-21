@@ -151,12 +151,26 @@ export async function POST(request: NextRequest) {
       console.log('⭐ Relevant demo event detected:', event.type);
     }
 
-    return NextResponse.json({ 
+    // For authorization requests, include the decision in the response
+    const responseData: any = { 
       received: true, 
       eventType: event.type,
       eventId: event.id,
       relevant: isRelevantEvent
-    });
+    };
+
+    // If this was an authorization request, include the decision
+    if (event.type === 'issuing_authorization.request' && (eventData as any).authorization_decision) {
+      const authDecision = (eventData as any).authorization_decision;
+      responseData.authorization = {
+        approved: authDecision.approved,
+        amount: authDecision.amount,
+        reason: authDecision.reason || undefined
+      };
+      console.log('📤 Webhook response includes authorization decision:', responseData.authorization);
+    }
+
+    return NextResponse.json(responseData);
 
   } catch (error: any) {
     console.error('Webhook processing error:', error);
@@ -265,40 +279,29 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
       processing_time: Date.now() - startTime
     };
 
-    // 4. Call Stripe API to approve/decline within 2 second window
-    const options = stripeAccount ? { stripeAccount } : {};
-    
+    // 4. Log authorization decision (no API calls needed for real-time webhooks)
     if (authorizationDecision.approved) {
       console.log('');
-      console.log('✅ ======== CALLING STRIPE APPROVE API ========');
+      console.log('✅ ======== AUTHORIZATION APPROVED ========');
       console.log('🔑 Authorization ID:', authorization.id);
       console.log('💰 Amount:', `${authorizationDecision.amount / 100} ${currency.toUpperCase()}`);
       console.log('🏪 Merchant:', merchantName);
       console.log('📊 MCC:', merchantCategory);
-      console.log('⏰ API Call Time:', new Date().toISOString());
-      
-      const params: any = {};
+      console.log('⏰ Decision Time:', new Date().toISOString());
       if (isAmountControllable && authorizationDecision.amount !== amount) {
-        params.amount = authorizationDecision.amount;
-        console.log('🔄 Partial Amount:', `${params.amount / 100} ${currency.toUpperCase()}`);
+        console.log('🔄 Partial Amount:', `${authorizationDecision.amount / 100} ${currency.toUpperCase()}`);
       }
-      
-      await stripe.issuing.authorizations.approve(authorization.id, params, options);
-      console.log('✅ STRIPE APPROVE API CALL SUCCESS');
       console.log('✅ ======================================');
       console.log('');
     } else {
       console.log('');
-      console.log('❌ ======== CALLING STRIPE DECLINE API ========');
+      console.log('❌ ======== AUTHORIZATION DECLINED ========');
       console.log('🔑 Authorization ID:', authorization.id);
       console.log('💰 Amount:', `${amount / 100} ${currency.toUpperCase()}`);
       console.log('🏪 Merchant:', merchantName);
       console.log('📊 MCC:', merchantCategory);
       console.log('❌ Decline Reason:', declineReason);
-      console.log('⏰ API Call Time:', new Date().toISOString());
-      
-      await stripe.issuing.authorizations.decline(authorization.id, {}, options);
-      console.log('❌ STRIPE DECLINE API CALL SUCCESS');
+      console.log('⏰ Decision Time:', new Date().toISOString());
       console.log('❌ ======================================');
       console.log('');
     }
