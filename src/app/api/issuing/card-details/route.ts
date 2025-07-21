@@ -23,8 +23,9 @@ export async function POST(request: NextRequest) {
 
     // Retrieve the card with all details
     const card = await stripe.issuing.cards.retrieve(cardId, {
-      stripeAccount: accountId,
       expand: ['cardholder']
+    }, {
+      stripeAccount: accountId
     });
 
     console.log('✅ Card details retrieved successfully');
