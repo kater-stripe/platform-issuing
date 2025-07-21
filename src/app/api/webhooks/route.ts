@@ -66,6 +66,14 @@ export async function POST(request: NextRequest) {
         console.log('👤 Cardholder:', event.data.object.cardholder);
         console.log('🏢 Account:', event.account || 'Unknown');
         console.log('⏰ Timestamp:', new Date().toISOString());
+        console.log('');
+        console.log('🔍 DEBUG: Full authorization object:');
+        console.log(JSON.stringify(event.data.object, null, 2));
+        console.log('');
+        console.log('🔍 DEBUG: Amount details:');
+        console.log('  - Raw amount:', event.data.object.amount);
+        console.log('  - Amount type:', typeof event.data.object.amount);
+        console.log('  - Pending request:', event.data.object.pending_request);
         console.log('🚨 ================================================');
         console.log('');
         
@@ -211,7 +219,14 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
     // Get MCC from authorization
     const merchantCategory = authorization.merchant_data?.category;
     const merchantName = authorization.merchant_data?.name || 'Unknown Merchant';
-    const amount = authorization.amount;
+    
+    // Check for amount in different places
+    let amount = authorization.amount;
+    if (amount === 0 && authorization.pending_request?.amount) {
+      amount = authorization.pending_request.amount;
+      console.log('💰 Using pending_request amount:', amount);
+    }
+    
     const currency = authorization.currency;
 
     // Check if this is a partial authorization (amount controllable)
