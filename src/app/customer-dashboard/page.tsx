@@ -18,6 +18,10 @@ interface AccountStatus {
     name?: string;
     mcc?: string;
   };
+  capabilities?: {
+    card_issuing?: string;
+    transfers?: string;
+  };
 }
 
 interface Balance {
@@ -38,6 +42,15 @@ export default function CustomerDashboard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const setupComplete = searchParams.get('setup') === 'complete';
+
+  // Update document title when business profile name is available
+  useEffect(() => {
+    if (accountStatus?.business_profile?.name) {
+      document.title = `${accountStatus.business_profile.name}`;
+    } else {
+      document.title = 'Company Dashboard';
+    }
+  }, [accountStatus?.business_profile?.name]);
 
   useEffect(() => {
     // Get account ID from URL parameter first, then fallback to localStorage
@@ -66,6 +79,10 @@ export default function CustomerDashboard() {
       const result = await response.json();
       
       if (result.success) {
+        console.log('📊 Dashboard received account data:', result.data);
+        console.log('📊 Business profile name:', result.data.business_profile?.name);
+        console.log('📊 Capabilities:', result.data.capabilities);
+        console.log('📊 Card issuing status:', result.data.capabilities?.card_issuing);
         setAccountStatus(result.data);
       } else {
         setError('Error retrieving account status');
@@ -169,6 +186,36 @@ export default function CustomerDashboard() {
     return enabled ? 'Active' : 'Pending';
   };
 
+  const getCapabilityStatusColor = (status: string | undefined) => {
+    switch (status) {
+      case 'active':
+        return 'text-green-600';
+      case 'pending':
+        return 'text-yellow-600';
+      case 'inactive':
+        return 'text-gray-500';
+      case 'rejected':
+        return 'text-red-600';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
+  const getCapabilityStatusText = (status: string | undefined) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'pending':
+        return 'Pending';
+      case 'inactive':
+        return 'Inactive';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -263,6 +310,13 @@ export default function CustomerDashboard() {
                   {getStatusText(accountStatus?.payouts_enabled || false)}
                 </span>
               </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Card Issuing</span>
+                <span className={`font-semibold ${getCapabilityStatusColor(accountStatus?.capabilities?.card_issuing)}`}>
+                  {getCapabilityStatusText(accountStatus?.capabilities?.card_issuing)}
+                </span>
+              </div>
             </div>
 
             {accountStatus?.requirements && accountStatus.requirements.currently_due.length > 0 && (
@@ -280,7 +334,7 @@ export default function CustomerDashboard() {
                     onClick={handleCompleteOnboarding}
                     className="ml-4 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700 font-medium transition-colors flex items-center space-x-1"
                   >
-                    <span>Complete Setup</span>
+                    <span>Complete Onboarding</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>

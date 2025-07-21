@@ -60,13 +60,39 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'issuing_authorization.request':
         // CRITICAL: Real-time authorization request - must respond within 2 seconds
-        console.log('🚨 Authorization request received:', event.data.object.id);
+        const requestStartTime = Date.now();
+        console.log('');
+        console.log('🚨 ============ AUTHORIZATION REQUEST RECEIVED ============');
+        console.log('📨 Event ID:', event.id);
+        console.log('🔑 Authorization ID:', event.data.object.id);
+        console.log('💰 Amount:', `${event.data.object.amount / 100} ${event.data.object.currency.toUpperCase()}`);
+        console.log('🏪 Merchant:', event.data.object.merchant_data?.name || 'Unknown');
+        console.log('📊 MCC:', event.data.object.merchant_data?.category || 'Unknown');
+        console.log('💳 Card:', event.data.object.card);
+        console.log('👤 Cardholder:', event.data.object.cardholder);
+        console.log('🏢 Account:', event.account || 'Unknown');
+        console.log('⏰ Timestamp:', new Date().toISOString());
+        console.log('🚨 ================================================');
+        console.log('');
+        
         const authorizationResult = await handleAuthorizationRequest(event.data.object, event.account);
         
         // Store the authorization decision (cast to allow additional properties)
         (eventData as any).authorization_decision = authorizationResult;
         
-        console.log('✅ Authorization decision:', authorizationResult.approved ? 'APPROVED' : 'DECLINED');
+        const totalProcessingTime = Date.now() - requestStartTime;
+        console.log('');
+        console.log('✅ ============ AUTHORIZATION RESPONSE SENT ============');
+        console.log('🔑 Authorization ID:', event.data.object.id);
+        console.log('🎯 Decision:', authorizationResult.approved ? '✅ APPROVED' : '❌ DECLINED');
+        if (!authorizationResult.approved) {
+          console.log('❌ Decline Reason:', authorizationResult.reason);
+        }
+        console.log('⏱️ Processing Time:', `${totalProcessingTime}ms`);
+        console.log('📊 Within 2s Limit:', totalProcessingTime < 2000 ? '✅ YES' : '❌ NO');
+        console.log('⏰ Response Timestamp:', new Date().toISOString());
+        console.log('✅ ================================================');
+        console.log('');
         break;
 
       case 'issuing_authorization.created':
@@ -241,18 +267,38 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
     const options = stripeAccount ? { stripeAccount } : {};
     
     if (authorizationDecision.approved) {
-      console.log('✅ Approving authorization:', authorization.id);
+      console.log('');
+      console.log('✅ ======== CALLING STRIPE APPROVE API ========');
+      console.log('🔑 Authorization ID:', authorization.id);
+      console.log('💰 Amount:', `${authorizationDecision.amount / 100} ${currency.toUpperCase()}`);
+      console.log('🏪 Merchant:', merchantName);
+      console.log('📊 MCC:', merchantCategory);
+      console.log('⏰ API Call Time:', new Date().toISOString());
       
       const params: any = {};
       if (isAmountControllable && authorizationDecision.amount !== amount) {
         params.amount = authorizationDecision.amount;
+        console.log('🔄 Partial Amount:', `${params.amount / 100} ${currency.toUpperCase()}`);
       }
       
       await stripe.issuing.authorizations.approve(authorization.id, params, options);
+      console.log('✅ STRIPE APPROVE API CALL SUCCESS');
+      console.log('✅ ======================================');
+      console.log('');
     } else {
-      console.log('❌ Declining authorization:', authorization.id, 'Reason:', declineReason);
+      console.log('');
+      console.log('❌ ======== CALLING STRIPE DECLINE API ========');
+      console.log('🔑 Authorization ID:', authorization.id);
+      console.log('💰 Amount:', `${amount / 100} ${currency.toUpperCase()}`);
+      console.log('🏪 Merchant:', merchantName);
+      console.log('📊 MCC:', merchantCategory);
+      console.log('❌ Decline Reason:', declineReason);
+      console.log('⏰ API Call Time:', new Date().toISOString());
       
       await stripe.issuing.authorizations.decline(authorization.id, {}, options);
+      console.log('❌ STRIPE DECLINE API CALL SUCCESS');
+      console.log('❌ ======================================');
+      console.log('');
     }
 
     const processingTime = Date.now() - startTime;

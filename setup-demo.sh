@@ -237,7 +237,7 @@ export function isAllowedMCC(mcc: string): boolean {
 }
 
 export function getCompanyInfo() {
-  return DEMO_CONFIG.companies[0]; // Huel
+  return DEMO_CONFIG.companies[0]; // Test London Ltd
 }
 
 export function getEmployeeInfo() {

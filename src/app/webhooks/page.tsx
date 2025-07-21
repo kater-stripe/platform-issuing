@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import AuthorizationMonitor from '@/components/authorization-monitor';
 import { DEMO_CONFIG } from '@/demo-config';
 
 interface WebhookEvent {
@@ -278,6 +279,11 @@ export default function WebhooksPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Real-time Authorization Monitor */}
+        <div className="mb-6">
+          <AuthorizationMonitor />
         </div>
 
         {/* Controls */}

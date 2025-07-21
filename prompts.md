@@ -2,11 +2,11 @@
 
 > **Copy-paste these prompts step by step during your live demo**
 
-Each prompt is designed to work with Cursor + the existing demo project structure. The prompts will implement real Stripe Connect + Issuing functionality using UK configuration and the Huel/Olivia Dubois story.
+Each prompt is designed to work with Cursor + the existing demo project structure. The prompts will implement real Stripe Connect + Issuing functionality using UK configuration and the Test London Ltd/Olivia Dubois story.
 
 **Current Project State:**
 - ✅ Next.js project with demo shell UI and navigation
-- ✅ Demo config with UK Huel and Olivia Dubois data
+- ✅ Demo config with UK Test London Ltd and Olivia Dubois data
 - ✅ Cursor rules for French-first Stripe patterns
 - ✅ Basic page structure ready for implementation
 - ❌ Stripe dependencies and API integration (to be added)
@@ -33,7 +33,7 @@ Follow @french-configuration-standards from .cursor/rules. All Stripe operations
 Check and set up the complete project structure:
 - Verify .env.local has Stripe test keys
 - Ensure src/app/api/ directories exist for: /connect/onboarding, /connect/balance, /issuing/cardholders, /issuing/cards, /webhooks
-- Confirm demo-config.ts has UK Huel data
+- Confirm demo-config.ts has UK Test London Ltd data with comprehensive pre-fill
 - Test basic Stripe connection with a simple balance check
 
 If anything is missing, create the necessary files and directories using @project-structure patterns.

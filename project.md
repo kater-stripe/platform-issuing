@@ -3,7 +3,7 @@
 **Meeting**: 2-hour live coding demo with Pluxee Product & Tech teams  
 **Date**: Tomorrow  
 **Objective**: Demonstrate Stripe's issuing and connect capabilities through live coding  
-**Story**: Olivia Dubois (Huel employee) using her corporate card with spending controls
+**Story**: Olivia Dubois (Test London Ltd employee) using her corporate card with spending controls
 
 ## 🎯 Demo Narrative
 

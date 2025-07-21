@@ -103,7 +103,7 @@ function createMockEventData(eventType: string) {
         charges_enabled: true,
         details_submitted: true,
         business_profile: {
-          name: 'Huel'
+          name: 'Test London Ltd'
         }
       };
 

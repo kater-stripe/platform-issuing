@@ -34,6 +34,26 @@ export interface Company {
   email: string;
   country: string;
   business_type: 'company' | 'individual';
+  business_profile?: {
+    name: string;
+    url: string;
+    support_email: string;
+    support_phone: string;
+    product_description: string;
+  };
+  company?: {
+    name: string;
+    phone: string;
+    address: {
+      line1: string;
+      line2?: string;
+      city: string;
+      postal_code: string;
+      country: string;
+    };
+    tax_id: string;
+    structure: string;
+  };
   employees: Array<{
     name: string;
     email: string;

@@ -22,10 +22,30 @@ export const DEMO_CONFIG = {
   // Enterprise clients for Connect onboarding
   companies: [
     {
-      name: 'Huel',
+      name: 'Test London Ltd',
       email: 'corporate@testlondon.co.uk',
       country: 'GB',
       business_type: 'company' as const,
+      business_profile: {
+        name: 'Test London Ltd',
+        url: 'https://testlondon.co.uk',
+        support_email: 'support@testlondon.co.uk',
+        support_phone: '+442071234567',
+        product_description: 'Digital marketing and technology consulting services'
+      },
+      company: {
+        name: 'Test London Ltd',
+        phone: '+442071234567',
+        address: {
+          line1: '123 Tech Street',
+          line2: 'Floor 5',
+          city: 'London',
+          postal_code: 'EC2A 4NE',
+          country: 'GB'
+        },
+        tax_id: 'GB123456789',
+        structure: 'private_corporation'
+      },
       employees: [
         {
           name: 'Olivia Dubois',
@@ -206,7 +226,7 @@ export const DEMO_CONFIG = {
       id: 'onboarding',
       name: 'Connect Onboarding',
       duration: '10 min', 
-              description: 'Test London Ltd onboarding with embedded component'
+      description: 'Test London Ltd onboarding with embedded component and pre-filled data'
     },
     {
       id: 'dashboard',

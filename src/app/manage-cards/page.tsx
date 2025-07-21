@@ -48,6 +48,11 @@ export default function ManageCardsPage() {
   const [cardholders, setCardholders] = useState<any[]>([]);
   const [creatingCard, setCreatingCard] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showCardDetails, setShowCardDetails] = useState<string | null>(null);
+  const [cardDetails, setCardDetails] = useState<any>(null);
+  const [loadingCardDetails, setLoadingCardDetails] = useState(false);
+  const [showingCardNumber, setShowingCardNumber] = useState<string | null>(null);
+  const [revealedCardNumber, setRevealedCardNumber] = useState<string | null>(null);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showIndividualCard, setShowIndividualCard] = useState(false);
   
@@ -284,6 +289,76 @@ export default function ManageCardsPage() {
     return DEMO_CONFIG.companies[0]; // Use first company as default
   };
 
+  const fetchCardDetails = async (cardId: string) => {
+    setLoadingCardDetails(true);
+    setCardDetails(null);
+    setError(null); // Clear any existing errors
+    
+    try {
+      const response = await fetch('/api/issuing/card-details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cardId: cardId,
+          accountId: accountId,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setCardDetails(result.data);
+        setShowCardDetails(cardId);
+      } else {
+        setError('Failed to fetch card details: ' + result.error);
+      }
+    } catch (err) {
+      console.error('Failed to fetch card details:', err);
+      setError('Failed to fetch card details');
+    } finally {
+      setLoadingCardDetails(false);
+    }
+  };
+
+  const revealCardNumber = async (cardId: string) => {
+    // If card number is already revealed, hide it
+    if (revealedCardNumber) {
+      setRevealedCardNumber(null);
+      return;
+    }
+
+    setShowingCardNumber(cardId);
+    setRevealedCardNumber(null);
+
+    try {
+      const response = await fetch('/api/issuing/reveal-card-number', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cardId: cardId,
+          accountId: accountId,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setRevealedCardNumber(result.data.card_number);
+      } else {
+        setError('Failed to reveal card number: ' + result.error);
+      }
+    } catch (err) {
+      console.error('Failed to reveal card number:', err);
+      setError('Failed to reveal card number');
+    } finally {
+      setShowingCardNumber(null);
+    }
+  };
+
   // Ephemeral key callback for PAN/PIN viewing
   const fetchEphemeralKey = async (fetchParams: { issuingCard: string; nonce: string }) => {
     const { issuingCard, nonce } = fetchParams;
@@ -346,6 +421,174 @@ export default function ManageCardsPage() {
       </div>
     );
   }
+
+  const formatMaskedCardNumber = (brand: string, last4: string) => {
+    // Format: •••• •••• •••• 0005
+    return `•••• •••• •••• ${last4}`;
+  };
+
+  const formatRevealedCardNumber = (cardNumber: string) => {
+    // Format: 4000 0000 0000 0002
+    return cardNumber.replace(/(.{4})/g, '$1 ').trim();
+  };
+
+  const formatExpiryDate = (month: number, year: number) => {
+    return `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
+  };
+
+  const getCardBrandLogo = (brand: string) => {
+    switch (brand.toLowerCase()) {
+      case 'visa':
+        return '💳';
+      case 'mastercard':
+        return '💳';
+      case 'amex':
+        return '💳';
+      default:
+        return '💳';
+    }
+  };
+
+  const CardDetailsModal = () => {
+    if (!showCardDetails || !cardDetails) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Card Details
+            </h3>
+            <button
+              onClick={() => {
+                setShowCardDetails(null);
+                setCardDetails(null);
+                setRevealedCardNumber(null); // Clear revealed number
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+
+          {loadingCardDetails ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading card details...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Card Visual */}
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+                <div className="flex justify-between items-start mb-8">
+                  <div className="text-lg font-semibold">
+                    {cardDetails.brand.toUpperCase()}
+                  </div>
+                  <div className="text-2xl">
+                    {getCardBrandLogo(cardDetails.brand)}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-sm opacity-75">Card Number</div>
+                    <div className="text-xl font-mono tracking-wider mb-2">
+                      {revealedCardNumber 
+                        ? formatRevealedCardNumber(revealedCardNumber)
+                        : formatMaskedCardNumber(cardDetails.brand, cardDetails.last4)
+                      }
+                    </div>
+                    {revealedCardNumber && (
+                      <div className="text-xs bg-red-500/20 text-red-100 px-2 py-1 rounded mb-2">
+                        🔒 Sensitive data revealed - Handle with care
+                      </div>
+                    )}
+                    <button
+                      onClick={() => revealCardNumber(cardDetails.id)}
+                      disabled={showingCardNumber === cardDetails.id}
+                      className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-white disabled:opacity-50"
+                    >
+                      {showingCardNumber === cardDetails.id 
+                        ? 'Revealing...' 
+                        : revealedCardNumber 
+                          ? 'Hide number' 
+                          : 'Show card number'
+                      }
+                    </button>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <div>
+                      <div className="text-sm opacity-75">Expires</div>
+                      <div className="font-mono">
+                        {formatExpiryDate(cardDetails.exp_month, cardDetails.exp_year)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm opacity-75">Type</div>
+                      <div className="capitalize">{cardDetails.type}</div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm opacity-75">Cardholder</div>
+                    <div className="font-medium">{cardDetails.cardholder.name}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Status */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Status:</span>
+                    <span className={`ml-2 font-medium ${
+                      cardDetails.status === 'active' ? 'text-green-600' : 'text-yellow-600'
+                    }`}>
+                      {cardDetails.status.charAt(0).toUpperCase() + cardDetails.status.slice(1)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Currency:</span>
+                    <span className="ml-2 font-medium uppercase">{cardDetails.currency}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Spending Controls */}
+              {cardDetails.spending_controls && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Spending Controls</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {cardDetails.spending_controls.allowed_categories?.length > 0 && (
+                      <div>
+                        <span className="font-medium">Allowed categories:</span>
+                        <div className="ml-2">
+                          {cardDetails.spending_controls.allowed_categories.join(', ')}
+                        </div>
+                      </div>
+                    )}
+                    {cardDetails.spending_controls.spending_limits?.length > 0 && (
+                      <div>
+                        <span className="font-medium">Spending limits:</span>
+                        <div className="ml-2">
+                          {cardDetails.spending_controls.spending_limits.map((limit: any, index: number) => (
+                            <div key={index}>
+                              £{(limit.amount / 100).toFixed(2)} per {limit.interval}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const companyData = getCompanyData();
 
@@ -498,9 +741,17 @@ export default function ManageCardsPage() {
 
             {/* Cards Section */}
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {showIndividualCard ? 'Individual Card Management' : 'Card List'}
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {showIndividualCard ? 'Individual Card Management' : 'Card List'}
+                </h2>
+                <div className="text-xs text-gray-500">
+                  {showIndividualCard 
+                    ? '✨ Full card management with built-in card number reveal'
+                    : '✨ Click any card row to view details with built-in card number reveal'
+                  }
+                </div>
+              </div>
               <div className="min-h-[500px]">
                 {showIndividualCard ? (
                   <ConnectIssuingCard
@@ -509,8 +760,48 @@ export default function ManageCardsPage() {
                     fetchEphemeralKey={fetchEphemeralKey}
                   />
                 ) : (
-                  <ConnectIssuingCardsList />
+                  <ConnectIssuingCardsList 
+                    fetchEphemeralKey={fetchEphemeralKey}
+                  />
                 )}
+              </div>
+
+              {/* Card Details Section */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Alternative: Custom Card Details Modal</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Alternative way to view card details. The cards list above now has built-in card number reveal when you click on any card row.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter card ID (e.g., ic_...)"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const cardId = (e.target as HTMLInputElement).value.trim();
+                        if (cardId) {
+                          fetchCardDetails(cardId);
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.querySelector('input[placeholder*="card ID"]') as HTMLInputElement;
+                      const cardId = input?.value.trim();
+                      if (cardId) {
+                        fetchCardDetails(cardId);
+                      } else {
+                        setError('Please enter a card ID');
+                      }
+                    }}
+                    disabled={loadingCardDetails}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {loadingCardDetails ? 'Loading...' : 'View Details'}
+                  </button>
+                </div>
               </div>
             </div>
           </ConnectComponentsProvider>
@@ -604,6 +895,9 @@ export default function ManageCardsPage() {
           </div>
         </div>
       )}
+
+      {/* Card Details Modal */}
+      <CardDetailsModal />
     </div>
   );
 } 

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DEMO_CONFIG } from '@/demo-config';
-import { loadConnectAndInitialize } from '@stripe/connect-js';
+// Import Connect JS dynamically to avoid SSR issues
+let loadConnectAndInitialize: any;
 
 export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
@@ -64,10 +65,27 @@ export default function OnboardingPage() {
 
   const initializeStripeConnect = async () => {
     try {
+      // Ensure we're on the client side
+      if (typeof window === 'undefined') {
+        console.log('Skipping Stripe Connect initialization on server side');
+        return;
+      }
+
       console.log('Initializing Stripe Connect for account:', accountId);
       
+      const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (!publishableKey) {
+        throw new Error('Stripe publishable key is not configured. Please check your environment variables.');
+      }
+
+      // Dynamically import Connect JS only on client side
+      if (!loadConnectAndInitialize) {
+        const connectModule = await import('@stripe/connect-js');
+        loadConnectAndInitialize = connectModule.loadConnectAndInitialize;
+      }
+      
       const stripeConnectInstance = loadConnectAndInitialize({
-        publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+        publishableKey: publishableKey,
         fetchClientSecret: async () => {
           console.log('Fetching client secret for account:', accountId);
           
@@ -96,7 +114,8 @@ export default function OnboardingPage() {
             return result.client_secret;
           } catch (error: any) {
             console.error('Failed to fetch client secret:', error);
-            throw new Error(`Failed to get client secret: ${error.message}`);
+            const clientSecretErrorMessage = error?.message || error?.toString() || 'Unknown client secret error';
+            throw new Error(`Failed to get client secret: ${clientSecretErrorMessage}`);
           }
         },
         appearance: {
@@ -130,12 +149,21 @@ export default function OnboardingPage() {
           const accountOnboarding = stripeConnectInstance.create('account-onboarding');
           console.log('Account onboarding component created:', accountOnboarding);
           
+          if (!accountOnboarding) {
+            throw new Error('Failed to create account onboarding component');
+          }
+          
           // Add load error handler as recommended in the documentation
           if (typeof accountOnboarding.setOnLoadError === 'function') {
             accountOnboarding.setOnLoadError((error: any) => {
               console.error('Component failed to load:', error);
-              setError('Error loading onboarding component: ' + error.message);
+              const errorMessage = error?.message || error?.toString() || 'Component initialization failed';
+              
+              // For demo purposes, provide a fallback option
+              setError(`Onboarding component error: ${errorMessage}. Use "Continue to dashboard" to proceed directly.`);
             });
+          } else {
+            console.warn('setOnLoadError method not available on component');
           }
 
           // Add loader start handler to know when component is visible
@@ -176,15 +204,27 @@ export default function OnboardingPage() {
           }
 
           console.log('Account onboarding component mounted successfully');
+          
+          // Set a timeout to handle cases where the component doesn't load
+          setTimeout(() => {
+            const loadingOverlay = document.getElementById('onboarding-loading');
+            if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+              console.warn('Onboarding component taking too long to load');
+              setError('Onboarding component is taking longer than expected. Use "Continue to dashboard" to proceed directly.');
+            }
+          }, 10000); // 10 second timeout
+          
         } catch (mountError: any) {
           console.error('Failed to mount component:', mountError);
-          setError('Error mounting component: ' + mountError.message);
+          const mountErrorMessage = mountError?.message || mountError?.toString() || 'Unknown mounting error';
+          setError(`Error mounting component: ${mountErrorMessage}. Use "Continue to dashboard" to proceed directly.`);
         }
       }, 500); // Increased delay to ensure DOM is ready
 
     } catch (error: any) {
       console.error('Failed to initialize Stripe Connect:', error);
-                setError('Error initializing Stripe Connect: ' + error.message);
+      const initErrorMessage = error?.message || error?.toString() || 'Unknown initialization error';
+      setError('Error initializing Stripe Connect: ' + initErrorMessage);
     }
   };
 
@@ -206,11 +246,41 @@ export default function OnboardingPage() {
       const result = await response.json();
 
       if (result.success) {
+        const accountId = result.data.account.id;
+        
+        // Update the account with comprehensive pre-fill data
+        console.log('📝 Updating account with pre-fill data...');
+        console.log('📝 Sending company name:', selectedCompany);
+        try {
+          const updateResponse = await fetch('/api/connect/account-update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              accountId: accountId,
+              companyName: selectedCompany,
+            }),
+          });
+
+          const updateResult = await updateResponse.json();
+          
+          if (updateResult.success) {
+            console.log('✅ Account updated with pre-fill data');
+          } else {
+            console.warn('⚠️ Account pre-fill update failed:', updateResult.error);
+            // Continue anyway, the account was created successfully
+          }
+        } catch (updateError) {
+          console.warn('⚠️ Account pre-fill update error:', updateError);
+          // Continue anyway, the account was created successfully
+        }
+        
         // Store account ID and company name in localStorage
-        localStorage.setItem('demo-account-id', result.data.account.id);
+        localStorage.setItem('demo-account-id', accountId);
         localStorage.setItem('demo-company-name', selectedCompany);
         
-        setAccountId(result.data.account.id);
+        setAccountId(accountId);
         setStep('onboard');
       } else {
         setError(result.error || 'Error creating account');
@@ -236,6 +306,80 @@ export default function OnboardingPage() {
     setError(null);
     setLoading(false);
     setStripeConnectInstance(null);
+  };
+
+  const handleContinueToDashboard = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // First try to create a new account with the selected company info
+      console.log('Creating new Connect account for:', selectedCompany);
+      
+      const response = await fetch('/api/connect/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: selectedCompany,
+        }),
+      });
+
+      const result = await response.json();
+      console.log('Account creation response:', result);
+
+      if (result.success && result.accountId) {
+        console.log('✅ New account created:', result.accountId);
+        
+        // Update the account with comprehensive pre-fill data
+        console.log('📝 Updating account with pre-fill data...');
+        console.log('📝 Sending company name:', selectedCompany);
+        const updateResponse = await fetch('/api/connect/account-update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accountId: result.accountId,
+            companyName: selectedCompany,
+          }),
+        });
+
+        const updateResult = await updateResponse.json();
+        
+        if (updateResult.success) {
+          console.log('✅ Account updated with pre-fill data');
+        } else {
+          console.warn('⚠️ Account pre-fill update failed:', updateResult.error);
+          // Continue anyway, the account was created successfully
+        }
+        
+        // Store the new account info
+        localStorage.setItem('demo-account-id', result.accountId);
+        localStorage.setItem('demo-company-name', selectedCompany);
+        
+        // Redirect to dashboard with the new account
+        router.push(`/customer-dashboard?account_id=${result.accountId}&setup=complete`);
+      } else {
+        console.error('❌ Account creation failed:', result);
+        let errorMessage = result.error || 'Failed to create account';
+        
+        if (result.details) {
+          console.error('Error details:', result.details);
+          if (result.details.type || result.details.code) {
+            errorMessage += ` (${result.details.type || result.details.code})`;
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error('Failed to create account:', error);
+      setError(`Failed to create account: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOnboardingComplete = () => {
@@ -337,7 +481,7 @@ export default function OnboardingPage() {
                 {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Creating account...
+                    Creating & configuring account...
                   </div>
                 ) : (
                   'Create Account'
@@ -419,10 +563,11 @@ export default function OnboardingPage() {
                 Start over with a new account
               </button>
               <button
-                onClick={() => router.push(`/customer-dashboard?account_id=acct_1RgJ4MEQ5uxHOs9V`)}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                onClick={handleContinueToDashboard}
+                disabled={loading}
+                className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
               >
-                Continue to dashboard
+                {loading ? 'Creating & configuring account...' : 'Continue to dashboard'}
               </button>
             </div>
           </div>
