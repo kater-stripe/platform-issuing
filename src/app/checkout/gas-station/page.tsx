@@ -320,9 +320,9 @@ export default function GasStationCheckoutPage() {
                     </div>
                   </div>
                   
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-                    <p className="text-sm text-red-800 text-center">
-                      ⚠️ Cette transaction sera refusée
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Note:</strong> ⚠️ This transaction will be declined
                     </p>
                   </div>
                   
