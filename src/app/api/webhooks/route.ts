@@ -53,21 +53,40 @@ export async function POST(request: NextRequest) {
     // Handle specific event types
     switch (event.type) {
       case 'issuing_authorization.request':
-        // CRITICAL: Real-time authorization request - must respond IMMEDIATELY
-        console.log('🚨 AUTH REQUEST:', event.data.object.id, `${event.data.object.amount/100} ${event.data.object.currency}`);
+        // CRITICAL: Real-time authorization request - must respond within 2 seconds
+        const requestStartTime = Date.now();
+        console.log('');
+        console.log('🚨 ============ AUTHORIZATION REQUEST RECEIVED ============');
+        console.log('📨 Event ID:', event.id);
+        console.log('🔑 Authorization ID:', event.data.object.id);
+        console.log('💰 Amount:', `${event.data.object.amount / 100} ${event.data.object.currency.toUpperCase()}`);
+        console.log('🏪 Merchant:', event.data.object.merchant_data?.name || 'Unknown');
+        console.log('📊 MCC:', event.data.object.merchant_data?.category || 'Unknown');
+        console.log('💳 Card:', event.data.object.card);
+        console.log('👤 Cardholder:', event.data.object.cardholder);
+        console.log('🏢 Account:', event.account || 'Unknown');
+        console.log('⏰ Timestamp:', new Date().toISOString());
+        console.log('🚨 ================================================');
+        console.log('');
         
-        // Process authorization in background, respond immediately
-        setImmediate(async () => {
-          try {
-            await handleAuthorizationRequest(event.data.object, event.account);
-          } catch (error) {
-            console.error('Background auth processing failed:', error);
-          }
-        });
+        const authorizationResult = await handleAuthorizationRequest(event.data.object, event.account);
         
-        // Store minimal event data
-        (eventData as any).authorization_amount = event.data.object.amount;
-        (eventData as any).authorization_merchant = event.data.object.merchant_data?.name;
+        // Store the authorization decision (cast to allow additional properties)
+        (eventData as any).authorization_decision = authorizationResult;
+        
+        const totalProcessingTime = Date.now() - requestStartTime;
+        console.log('');
+        console.log('✅ ============ AUTHORIZATION RESPONSE SENT ============');
+        console.log('🔑 Authorization ID:', event.data.object.id);
+        console.log('🎯 Decision:', authorizationResult.approved ? '✅ APPROVED' : '❌ DECLINED');
+        if (!authorizationResult.approved) {
+          console.log('❌ Decline Reason:', authorizationResult.reason);
+        }
+        console.log('⏱️ Processing Time:', `${totalProcessingTime}ms`);
+        console.log('📊 Within 2s Limit:', totalProcessingTime < 2000 ? '✅ YES' : '❌ NO');
+        console.log('⏰ Response Timestamp:', new Date().toISOString());
+        console.log('✅ ================================================');
+        console.log('');
         break;
 
       case 'issuing_authorization.created':
@@ -148,56 +167,151 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Utility function for formatting currency
+function formatCurrency(amount: number, currency: string = 'GBP'): string {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount / 100);
+}
+
 /**
- * Handle real-time authorization requests - optimized for speed
- * Processes in background after webhook response is sent
+ * Handle real-time authorization requests within 2-second window
+ * This is the core authorization logic that replaces the simulation
  */
 async function handleAuthorizationRequest(authorization: any, stripeAccount?: string) {
   const startTime = Date.now();
   
   try {
-    // Quick decision logic - minimize processing
-    const amount = authorization.amount;
-    const merchantCategory = authorization.merchant_data?.category;
+    console.log('🔍 Processing authorization request:', {
+      id: authorization.id,
+      amount: authorization.amount,
+      currency: authorization.currency,
+      merchant: authorization.merchant_data?.name,
+      mcc: authorization.merchant_data?.category,
+      card: authorization.card,
+      cardholder: authorization.cardholder,
+      account: stripeAccount
+    });
 
-    // Fast approval logic - approve most transactions for demo
+    // Get MCC from authorization
+    const merchantCategory = authorization.merchant_data?.category;
+    const merchantName = authorization.merchant_data?.name || 'Unknown Merchant';
+    const amount = authorization.amount;
+    const currency = authorization.currency;
+
+    // Check if this is a partial authorization (amount controllable)
+    const isAmountControllable = authorization.pending_request?.is_amount_controllable || false;
+
+    // 1. Check MCC restrictions based on demo config
+    console.log(`🔍 Checking MCC ${merchantCategory} for merchant "${merchantName}"`);
+    
+    // First check if merchant is in our blocked list
+    const blockedMerchant = DEMO_CONFIG.merchants.blocked.find(m => 
+      m.name.toLowerCase().includes(merchantName.toLowerCase()) ||
+      m.mcc === merchantCategory
+    );
+    
+    // Then check if merchant is in our allowed list  
+    const allowedMerchant = DEMO_CONFIG.merchants.allowed.find(m => 
+      m.name.toLowerCase().includes(merchantName.toLowerCase()) ||
+      m.mcc === merchantCategory
+    );
+
     let isBlocked = false;
     let declineReason = '';
 
-    // Simple amount check (higher limits for demo)
-    if (amount > 500000) { // £5000
+    if (blockedMerchant) {
       isBlocked = true;
-      declineReason = 'Amount exceeds limit';
-    }
-
-    // Quick MCC check
-    if (merchantCategory && DEMO_CONFIG.mccCodes[merchantCategory]?.allowed === false) {
-      isBlocked = true;
-      declineReason = 'Merchant category blocked';
-    }
-
-    // Fast API call
-    const options = stripeAccount ? { stripeAccount } : {};
-    
-    if (isBlocked) {
-      await stripe.issuing.authorizations.decline(authorization.id, {}, options);
-      console.log('❌ DECLINED:', authorization.id, declineReason);
+      declineReason = `Merchant "${merchantName}" blocked by spending controls`;
+      console.log(`❌ Blocked merchant found: ${blockedMerchant.name}`);
+    } else if (allowedMerchant) {
+      // Explicitly allowed merchant
+      console.log(`✅ Allowed merchant found: ${allowedMerchant.name}`);
+    } else if (merchantCategory) {
+      // Check if the MCC code itself is blocked in our config
+      const mccInfo = DEMO_CONFIG.mccCodes[merchantCategory];
+      if (mccInfo && !mccInfo.allowed) {
+        isBlocked = true;
+        declineReason = `Category "${mccInfo.name}" blocked by spending controls`;
+        console.log(`❌ Blocked MCC category: ${mccInfo.name}`);
+      } else if (mccInfo && mccInfo.allowed) {
+        console.log(`✅ Allowed MCC category: ${mccInfo.name}`);
+      } else {
+        // Unknown MCC - let's be permissive for demo
+        console.log(`⚠️ Unknown MCC ${merchantCategory} - allowing for demo purposes`);
+      }
     } else {
-      await stripe.issuing.authorizations.approve(authorization.id, {}, options);
-      console.log('✅ APPROVED:', authorization.id, `${amount/100} ${authorization.currency}`);
+      console.log(`⚠️ No MCC provided - allowing for demo purposes`);
     }
 
-    console.log(`⏱️ Processed in ${Date.now() - startTime}ms`);
+    // 2. Check spending limits (demo limits - set higher for demo purposes)
+    const monthlyLimit = 500000; // £5000 in cents
+    const dailyLimit = 25000;    // £250 in cents
+    
+    if (amount > monthlyLimit) {
+      isBlocked = true;
+      declineReason = `Amount (${formatCurrency(amount, currency)}) exceeds monthly limit of ${formatCurrency(monthlyLimit, currency)}`;
+    } else if (amount > dailyLimit) {
+      isBlocked = true;
+      declineReason = `Amount (${formatCurrency(amount, currency)}) exceeds daily limit of ${formatCurrency(dailyLimit, currency)}`;
+    }
 
-    return {
+    // 3. Make authorization decision
+    const authorizationDecision = {
       approved: !isBlocked,
       reason: declineReason,
-      amount: amount,
+      amount: isAmountControllable && isBlocked ? 0 : amount,
       processing_time: Date.now() - startTime
     };
 
+    // 4. Call Stripe API to approve/decline within 2 second window
+    const options = stripeAccount ? { stripeAccount } : {};
+    
+    if (authorizationDecision.approved) {
+      console.log('');
+      console.log('✅ ======== CALLING STRIPE APPROVE API ========');
+      console.log('🔑 Authorization ID:', authorization.id);
+      console.log('💰 Amount:', `${authorizationDecision.amount / 100} ${currency.toUpperCase()}`);
+      console.log('🏪 Merchant:', merchantName);
+      console.log('📊 MCC:', merchantCategory);
+      console.log('⏰ API Call Time:', new Date().toISOString());
+      
+      const params: any = {};
+      if (isAmountControllable && authorizationDecision.amount !== amount) {
+        params.amount = authorizationDecision.amount;
+        console.log('🔄 Partial Amount:', `${params.amount / 100} ${currency.toUpperCase()}`);
+      }
+      
+      await stripe.issuing.authorizations.approve(authorization.id, params, options);
+      console.log('✅ STRIPE APPROVE API CALL SUCCESS');
+      console.log('✅ ======================================');
+      console.log('');
+    } else {
+      console.log('');
+      console.log('❌ ======== CALLING STRIPE DECLINE API ========');
+      console.log('🔑 Authorization ID:', authorization.id);
+      console.log('💰 Amount:', `${amount / 100} ${currency.toUpperCase()}`);
+      console.log('🏪 Merchant:', merchantName);
+      console.log('📊 MCC:', merchantCategory);
+      console.log('❌ Decline Reason:', declineReason);
+      console.log('⏰ API Call Time:', new Date().toISOString());
+      
+      await stripe.issuing.authorizations.decline(authorization.id, {}, options);
+      console.log('❌ STRIPE DECLINE API CALL SUCCESS');
+      console.log('❌ ======================================');
+      console.log('');
+    }
+
+    const processingTime = Date.now() - startTime;
+    console.log(`⏱️ Authorization processed in ${processingTime}ms (must be < 2000ms)`);
+
+    return authorizationDecision;
+
   } catch (error: any) {
-    console.error('❌ Auth failed:', authorization.id, error.message);
+    console.error('❌ Authorization processing failed:', error);
+    
+    // If we fail to process, let Stripe handle it based on webhook timeout settings
     return {
       approved: false,
       reason: 'Internal server error',
