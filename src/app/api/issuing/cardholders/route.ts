@@ -3,6 +3,9 @@ import { stripe } from '@/lib/stripe';
 import { addToCollection } from '@/lib/storage';
 import { DEMO_CONFIG } from '@/demo-config';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { accountId, employeeData, companyData } = await request.json();
@@ -130,8 +133,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId');
+    const accountId = request.nextUrl.searchParams.get('accountId');
 
     if (!accountId) {
       return NextResponse.json(

@@ -125,9 +125,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId');
-    const cardholderId = searchParams.get('cardholderId');
+    const accountId = request.nextUrl.searchParams.get('accountId');
+    const cardholderId = request.nextUrl.searchParams.get('cardholderId');
 
     if (!accountId) {
       return NextResponse.json(

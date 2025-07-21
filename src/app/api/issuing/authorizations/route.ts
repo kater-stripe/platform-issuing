@@ -101,10 +101,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId');
-    const cardId = searchParams.get('cardId');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const accountId = request.nextUrl.searchParams.get('accountId');
+    const cardId = request.nextUrl.searchParams.get('cardId');
+    const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10');
 
     if (!accountId) {
       return NextResponse.json({

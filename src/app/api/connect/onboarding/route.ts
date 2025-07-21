@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { DEMO_CONFIG } from '@/demo-config';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import { addToCollection } from '@/lib/storage';
 
 export async function POST(request: NextRequest) {
@@ -115,8 +118,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const url = new URL(request.url);
-    const accountId = url.searchParams.get('account_id');
+    const accountId = request.nextUrl.searchParams.get('account_id');
     
     if (!accountId) {
       return NextResponse.json({
