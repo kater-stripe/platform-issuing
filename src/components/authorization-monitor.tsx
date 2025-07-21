@@ -161,7 +161,7 @@ export default function AuthorizationMonitor() {
                       >
                         {event.decision === 'APPROVED' ? '✅ APPROVED' : '❌ DECLINED'}
                       </span>
-                      {event.reason && (
+                      {event.decision === 'DECLINED' && event.reason && (
                         <span className="ml-2 text-sm text-gray-600">{event.reason}</span>
                       )}
                       {event.processingTime && (

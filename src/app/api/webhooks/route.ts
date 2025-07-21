@@ -134,8 +134,8 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
 
     return {
       approved: !isBlocked,
-      reason: declineReason,
-      amount: actualAmount,
+      reason: isBlocked ? declineReason : '', // Ensure reason is empty when approved
+      amount: isAmountControllable && isBlocked ? 0 : actualAmount,
       processing_time: Date.now() - startTime,
     };
 
