@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DEMO_CONFIG } from '@/demo-config';
 import { getFirstAvailableCard, Card } from '@/lib/cards';
+import { useSearchParams } from 'next/navigation';
 
 interface AuthorizationResult {
   success: boolean;
@@ -24,19 +25,34 @@ export default function SephoraCheckoutPage() {
   const [cardInfo, setCardInfo] = useState<Card | null>(null);
   const [cardLoading, setCardLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const merchant = DEMO_CONFIG.merchants.allowed.find(m => m.name === 'Sephora')!;
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {
-    loadCard();
-  }, []);
+    const cardId = searchParams.get('card_id');
+    loadCard(cardId);
+  }, [searchParams]);
 
-  const loadCard = async () => {
+  const loadCard = async (cardId: string | null) => {
     setCardLoading(true);
     try {
-      const card = await getFirstAvailableCard();
-      setCardInfo(card);
+      if (cardId) {
+        const accountId = localStorage.getItem('demo-account-id');
+        if (accountId) {
+          const response = await fetch(`/api/issuing/cards/${cardId}?accountId=${accountId}`);
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              setCardInfo(result.data);
+            }
+          }
+        }
+      } else {
+        const card = await getFirstAvailableCard();
+        setCardInfo(card);
+      }
     } catch (error) {
       console.error('Failed to load card:', error);
     } finally {
