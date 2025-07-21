@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
         console.log('🚨 ============ AUTHORIZATION REQUEST RECEIVED ============');
         console.log('📨 Event ID:', event.id);
         console.log('🔑 Authorization ID:', event.data.object.id);
-        console.log('💰 Amount:', `${event.data.object.amount / 100} ${event.data.object.currency.toUpperCase()}`);
+        // Get the correct amount (might be in pending_request)
+        const actualAmount = event.data.object.amount || event.data.object.pending_request?.amount || 0;
+        console.log('💰 Amount:', `${actualAmount / 100} ${event.data.object.currency.toUpperCase()}`);
+        console.log('💰 Amount Source:', event.data.object.amount ? 'amount' : 'pending_request.amount');
         console.log('🏪 Merchant:', event.data.object.merchant_data?.name || 'Unknown');
         console.log('📊 MCC:', event.data.object.merchant_data?.category || 'Unknown');
         console.log('💳 Card:', event.data.object.card);
@@ -205,9 +208,13 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
   const startTime = Date.now();
   
   try {
+    // Get the correct amount (might be in pending_request)
+    const actualAmount = authorization.amount || authorization.pending_request?.amount || 0;
+    
     console.log('🔍 Processing authorization request:', {
       id: authorization.id,
-      amount: authorization.amount,
+      amount: actualAmount,
+      amount_source: authorization.amount ? 'amount' : 'pending_request.amount',
       currency: authorization.currency,
       merchant: authorization.merchant_data?.name,
       mcc: authorization.merchant_data?.category,
@@ -220,14 +227,11 @@ async function handleAuthorizationRequest(authorization: any, stripeAccount?: st
     const merchantCategory = authorization.merchant_data?.category;
     const merchantName = authorization.merchant_data?.name || 'Unknown Merchant';
     
-    // Check for amount in different places
-    let amount = authorization.amount;
-    if (amount === 0 && authorization.pending_request?.amount) {
-      amount = authorization.pending_request.amount;
-      console.log('💰 Using pending_request amount:', amount);
-    }
-    
+    // Use the amount we already calculated above
+    const amount = actualAmount;
     const currency = authorization.currency;
+    
+    console.log('💰 Final amount being processed:', `${amount / 100} ${currency.toUpperCase()}`);
 
     // Check if this is a partial authorization (amount controllable)
     const isAmountControllable = authorization.pending_request?.is_amount_controllable || false;
