@@ -22,6 +22,11 @@ export default function CheckoutPage() {
     const storageAccountId = localStorage.getItem('demo-account-id');
     const accountId = urlAccountId || storageAccountId;
     
+    const selectedCardId = searchParams.get('card_id');
+    if (selectedCardId) {
+      setSelectedCard(selectedCardId);
+    }
+    
     const savedCompanyName = localStorage.getItem('demo-company-name') || 'Test London Ltd';
     setCompanyName(savedCompanyName);
 
@@ -53,7 +58,7 @@ export default function CheckoutPage() {
       
       if (result.success && result.data) {
         setCards(result.data);
-        if (result.data.length > 0) {
+        if (result.data.length > 0 && !selectedCard) {
           setSelectedCard(result.data[0].id);
         }
       } else {
@@ -62,7 +67,7 @@ export default function CheckoutPage() {
         if (savedCards) {
           const cardsData = JSON.parse(savedCards);
           setCards(cardsData);
-          if (cardsData.length > 0) {
+          if (cardsData.length > 0 && !selectedCard) {
             setSelectedCard(cardsData[0].id);
           }
         }
@@ -76,7 +81,7 @@ export default function CheckoutPage() {
       if (savedCards) {
         const cardsData = JSON.parse(savedCards);
         setCards(cardsData);
-        if (cardsData.length > 0) {
+        if (cardsData.length > 0 && !selectedCard) {
           setSelectedCard(cardsData[0].id);
         }
       }
@@ -276,7 +281,7 @@ export default function CheckoutPage() {
           {selectedCard && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h3 className="font-semibold text-blue-900 mb-2">Active spending limits</h3>
-              {cards.find(c => c.id === selectedCard)?.spending_limits.map((limit, index) => (
+              {cards.find(c => c.id === selectedCard)?.spending_limits.map((limit, index: number) => (
                 <p key={index} className="text-sm text-blue-800">
                   • {formatCurrency(limit.amount)} per {limit.interval === 'monthly' ? 'month' : 'day'}
                 </p>
@@ -300,7 +305,7 @@ export default function CheckoutPage() {
               return (
                 <Link
                   key={merchant.name}
-                  href={`/checkout/${merchantSlug}`}
+                  href={`/checkout/${merchantSlug}?card_id=${selectedCard}`}
                   className="block bg-white rounded-xl shadow-sm border-2 border-green-200 p-6 hover:border-green-300 transition-colors"
                 >
                   <div className="flex items-center space-x-4 mb-3">
@@ -337,7 +342,7 @@ export default function CheckoutPage() {
               return (
                 <Link
                   key={merchant.name}
-                  href={`/checkout/${merchantSlug}`}
+                  href={`/checkout/${merchantSlug}?card_id=${selectedCard}`}
                   className="block bg-white rounded-xl shadow-sm border-2 border-red-200 p-6 hover:border-red-300 transition-colors"
                 >
                   <div className="flex items-center space-x-4 mb-3">
