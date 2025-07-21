@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ConditionalHeader } from "./components/conditional-header";
-import { ConditionalMain } from "./components/conditional-main";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Stripe Connect & Issuing Demo",
-  description: "Live coding demo of Stripe Connect and Issuing capabilities",
+  title: "Hi Bob Expense",
+  description: "A Stripe Issuing, Treasury, and Capital demo.",
 };
 
 export default function RootLayout({
@@ -15,11 +16,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        <ConditionalHeader />
-        <ConditionalMain>
-          {children}
-        </ConditionalMain>
+      <body className={inter.className}>
+        <div className="min-h-screen bg-hibob-background">
+          <header className="bg-white shadow-sm">
+            <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <h1 className="text-2xl font-bold text-hibob-brand">
+                      Hi Bob <span className="font-light">Expense</span>
+                    </h1>
+                  </div>
+                </div>
+              </div>
+            </nav>
+          </header>
+          <main>{children}</main>
+        </div>
       </body>
     </html>
   );
