@@ -185,10 +185,14 @@ export default function WebhooksPage() {
     switch (type) {
       case 'issuing_authorization.created':
       case 'issuing_authorization.updated':
+        const amount = data.amount || data.pending_request?.amount || 0;
+        const amountSource = data.amount ? 'amount' : 'pending_request.amount';
+        
         return (
           <div className="text-sm text-gray-600 space-y-1">
             <p><strong>ID:</strong> {data.id}</p>
-            <p><strong>Amount:</strong> {formatCurrency(data.amount, data.currency)}</p>
+            <p><strong>Amount:</strong> {formatCurrency(amount, data.currency)}</p>
+            <p className="text-xs text-gray-500">(Source: {amountSource})</p>
             <p><strong>Status:</strong> {data.status}</p>
             {data.merchant_data?.name && (
               <p><strong>Merchant:</strong> {data.merchant_data.name}</p>

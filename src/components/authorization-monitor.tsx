@@ -32,12 +32,14 @@ export default function AuthorizationMonitor() {
             .filter((event: any) => event.type.startsWith('issuing_authorization'))
             .map((event: any) => {
               if (event.type === 'issuing_authorization.request') {
+                const amount = event.data.amount || event.data.pending_request?.amount || 0;
+                
                 return {
                   id: `${event.id}-request`,
                   type: 'request' as const,
                   timestamp: event.timestamp,
                   authorizationId: event.data.id,
-                  amount: event.data.amount,
+                  amount: amount,
                   currency: event.data.currency,
                   merchant: event.data.merchant_data?.name || 'Unknown',
                   mcc: event.data.merchant_data?.category || 'Unknown',
@@ -46,12 +48,14 @@ export default function AuthorizationMonitor() {
                   processingTime: event.authorization_decision?.processing_time,
                 };
               } else if (event.type === 'issuing_authorization.created') {
+                const amount = event.data.amount || event.data.pending_request?.amount || 0;
+                
                 return {
                   id: `${event.id}-created`,
                   type: 'created' as const,
                   timestamp: event.timestamp,
                   authorizationId: event.data.id,
-                  amount: event.data.amount,
+                  amount: amount,
                   currency: event.data.currency,
                   merchant: event.data.merchant_data?.name || 'Unknown',
                   mcc: event.data.merchant_data?.category || 'Unknown',
