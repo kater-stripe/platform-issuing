@@ -33,6 +33,8 @@ export default function AuthorizationMonitor() {
             .map((event: any) => {
               if (event.type === 'issuing_authorization.request') {
                 const amount = event.data.amount || event.data.pending_request?.amount || 0;
+                const decision = event.authorization_decision?.approved ? 'APPROVED' : 'DECLINED';
+                const reason = (event.authorization_decision?.reason && typeof event.authorization_decision.reason === 'string' && event.authorization_decision.reason.trim() !== '') ? event.authorization_decision.reason : undefined;
                 
                 return {
                   id: `${event.id}-request`,
@@ -43,8 +45,8 @@ export default function AuthorizationMonitor() {
                   currency: event.data.currency,
                   merchant: event.data.merchant_data?.name || 'Unknown',
                   mcc: event.data.merchant_data?.category || 'Unknown',
-                  decision: event.authorization_decision?.approved ? 'APPROVED' : 'DECLINED',
-                  reason: (event.authorization_decision?.reason && typeof event.authorization_decision.reason === 'string' && event.authorization_decision.reason.trim() !== '') ? event.authorization_decision.reason : undefined,
+                  decision: decision,
+                  reason: reason,
                   processingTime: event.authorization_decision?.processing_time,
                 };
               } else if (event.type === 'issuing_authorization.created') {
@@ -164,7 +166,7 @@ export default function AuthorizationMonitor() {
                       {event.decision === 'DECLINED' && event.reason && (
                         <span className="ml-2 text-sm text-gray-600">{event.reason}</span>
                       )}
-                      {event.processingTime && (
+                      {typeof event.processingTime === 'number' && (
                         <span className="ml-2 text-xs text-gray-500">
                           ({event.processingTime}ms)
                         </span>
