@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DEMO_CONFIG } from '@/demo-config';
 import { getFirstAvailableCard, Card } from '@/lib/cards';
 import { useSearchParams } from 'next/navigation';
+import AuthorizationMonitor from '@/components/authorization-monitor';
 
 interface AuthorizationResult {
   success: boolean;
@@ -379,20 +380,20 @@ export default function GasStationCheckoutPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-600">Amount:</p>
-                  <p className="font-medium">{formatCurrency(authResult.amount)}</p>
+                  <p className="font-medium text-gray-900">{formatCurrency(authResult.amount)}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Merchant:</p>
-                  <p className="font-medium">{authResult.merchant}</p>
+                  <p className="font-medium text-gray-900">{authResult.merchant}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">MCC Category:</p>
-                  <p className="font-medium">{authResult.mcc} - {mccInfo.name}</p>
+                  <p className="font-medium text-gray-900">{authResult.mcc} - {mccInfo.name}</p>
                 </div>
                 {authResult.authorizationId && (
                   <div>
                     <p className="text-gray-600">ID Autorisation:</p>
-                    <p className="font-mono text-xs">{authResult.authorizationId}</p>
+                    <p className="font-mono text-xs text-gray-900">{authResult.authorizationId}</p>
                   </div>
                 )}
               </div>
@@ -415,6 +416,11 @@ export default function GasStationCheckoutPage() {
             </div>
           </div>
         )}
+
+        {/* Real-time Authorization Monitor */}
+        <div className="mt-6">
+          <AuthorizationMonitor />
+        </div>
       </div>
     </div>
   );
