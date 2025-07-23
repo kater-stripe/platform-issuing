@@ -44,7 +44,7 @@ export default function AuthorizationMonitor() {
                   merchant: event.data.merchant_data?.name || 'Unknown',
                   mcc: event.data.merchant_data?.category || 'Unknown',
                   decision: event.authorization_decision?.approved ? 'APPROVED' : 'DECLINED',
-                  reason: event.authorization_decision?.reason,
+                  reason: (event.authorization_decision?.reason && typeof event.authorization_decision.reason === 'string' && event.authorization_decision.reason.trim() !== '') ? event.authorization_decision.reason : undefined,
                   processingTime: event.authorization_decision?.processing_time,
                 };
               } else if (event.type === 'issuing_authorization.created') {
