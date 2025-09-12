@@ -58,9 +58,19 @@ export async function POST(request: NextRequest) {
     const allowedCategories = card.spending_controls?.allowed_categories || [];
     const blockedCategories = card.spending_controls?.blocked_categories || [];
 
-    // Determine if MCC is allowed based on demo config
-    const isAllowedMerchant = DEMO_CONFIG.merchants.allowed.some(m => m.mcc === merchant.mcc);
-    const isBlockedMerchant = DEMO_CONFIG.merchants.blocked.some(m => m.mcc === merchant.mcc);
+    // Determine if MCC is allowed based on SnackPack wallet config
+    const allAllowedMerchants = [
+      ...DEMO_CONFIG.merchants.meal,
+      ...DEMO_CONFIG.merchants.transport,
+      ...DEMO_CONFIG.merchants.wellness
+    ];
+    const allBlockedMerchants = DEMO_CONFIG.merchants.blocked;
+    
+    const isAllowedMerchant = allAllowedMerchants.some(m => m.mcc === merchant.mcc);
+    const isBlockedMerchant = allBlockedMerchants.some(m => m.mcc === merchant.mcc);
+    
+    // Determine which wallet this merchant belongs to
+    const walletType = allAllowedMerchants.find(m => m.mcc === merchant.mcc)?.wallet || 'blocked';
 
     let authorized = true;
     let reason = '';

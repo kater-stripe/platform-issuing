@@ -28,7 +28,7 @@ export default function CasinoCheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const merchant = DEMO_CONFIG.merchants.blocked.find(m => m.name === 'Casino')!;
+  const merchant = DEMO_CONFIG.merchants.blocked.find(m => m.name === 'Grosvenor Casino')!;
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {

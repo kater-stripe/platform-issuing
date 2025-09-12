@@ -27,12 +27,12 @@ export async function POST(request: NextRequest) {
     console.log('Creating cardholder for account:', accountId);
     console.log('Employee data:', employeeData);
 
-    // Use Olivia's address from demo config as the billing address
+    // Use Sophie's address from SnackPack demo config as the billing address
     const billingAddress: any = {
-      line1: DEMO_CONFIG.olivia.address.line1,
-      city: DEMO_CONFIG.olivia.address.city,
-      postal_code: DEMO_CONFIG.olivia.address.postal_code,
-      country: DEMO_CONFIG.olivia.address.country,
+      line1: DEMO_CONFIG.sophie.address.line1,
+      city: DEMO_CONFIG.sophie.address.city,
+      postal_code: DEMO_CONFIG.sophie.address.postal_code,
+      country: DEMO_CONFIG.sophie.address.country,
     };
 
     // Create cardholder on the connected account

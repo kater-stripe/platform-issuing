@@ -113,7 +113,9 @@ export default function CheckoutPage() {
   };
 
   const allMerchants = [
-    ...DEMO_CONFIG.merchants.allowed,
+    ...DEMO_CONFIG.merchants.meal,
+    ...DEMO_CONFIG.merchants.transport,
+    ...DEMO_CONFIG.merchants.wellness,
     ...DEMO_CONFIG.merchants.blocked,
   ];
 
@@ -298,7 +300,7 @@ export default function CheckoutPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Allowed Merchants */}
-            {DEMO_CONFIG.merchants.allowed.map((merchant) => {
+            {[...DEMO_CONFIG.merchants.meal, ...DEMO_CONFIG.merchants.transport, ...DEMO_CONFIG.merchants.wellness].map((merchant) => {
               const mccInfo = getMCCInfo(merchant.mcc);
               const merchantSlug = getSlugForMerchant(merchant.name);
               

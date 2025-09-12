@@ -28,7 +28,7 @@ export default function UberCheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const merchant = DEMO_CONFIG.merchants.allowed.find(m => m.name === 'Uber')!;
+  const merchant = DEMO_CONFIG.merchants.transport.find(m => m.name === 'Uber')!;
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {

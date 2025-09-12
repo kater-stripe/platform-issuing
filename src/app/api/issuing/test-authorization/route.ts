@@ -17,32 +17,32 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Predefined test scenarios
+    // Predefined SnackPack test scenarios
     const testScenarios = {
       'paul-success': {
-        merchant: DEMO_CONFIG.merchants.allowed.find(m => m.name.includes('Paul')),
-        amount: 1250, // €12.50 - within limits
-        description: 'Successful restaurant transaction'
+        merchant: DEMO_CONFIG.merchants.meal.find(m => m.name.includes('Paul')),
+        amount: 1250, // £12.50 - within meal wallet limit
+        description: 'Successful meal wallet transaction'
       },
       'uber-success': {
-        merchant: DEMO_CONFIG.merchants.allowed.find(m => m.name.includes('Uber')),
-        amount: 1850, // €18.50 - within limits
-        description: 'Successful taxi transaction'
+        merchant: DEMO_CONFIG.merchants.transport.find(m => m.name.includes('Uber')),
+        amount: 1250, // £12.50 - within transport wallet limit
+        description: 'Successful transport wallet transaction'
       },
-      'sephora-success': {
-        merchant: DEMO_CONFIG.merchants.allowed.find(m => m.name.includes('Sephora')),
-        amount: 4500, // €45.00 - within limits
-        description: 'Successful cosmetics transaction'
+      'wellness-success': {
+        merchant: DEMO_CONFIG.merchants.wellness.find(m => m.name.includes('PureGym')),
+        amount: 2999, // £29.99 - within wellness wallet limit
+        description: 'Successful wellness wallet transaction (gym membership)'
       },
       'gas-station-blocked': {
         merchant: DEMO_CONFIG.merchants.blocked.find(m => m.mcc === '5541'),
-        amount: 3000, // €30.00
+        amount: 6500, // £65.00
         description: 'Blocked gas station transaction (MCC restriction)'
       },
       'high-amount-declined': {
-        merchant: DEMO_CONFIG.merchants.allowed.find(m => m.name.includes('Paul')),
-        amount: 7500, // €75.00 - exceeds daily limit
-        description: 'Declined transaction (amount limit exceeded)'
+        merchant: DEMO_CONFIG.merchants.meal.find(m => m.name.includes('Paul')),
+        amount: 2500, // £25.00 - exceeds meal wallet daily limit of £15
+        description: 'Declined meal transaction (daily limit exceeded)'
       },
       'partial-authorization': {
         merchant: {

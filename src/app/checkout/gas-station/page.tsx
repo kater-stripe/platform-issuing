@@ -28,7 +28,7 @@ export default function GasStationCheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const merchant = DEMO_CONFIG.merchants.blocked.find(m => m.name === 'Gas Station')!
+  const merchant = DEMO_CONFIG.merchants.blocked.find(m => m.name === 'Shell Petrol Station')!
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {

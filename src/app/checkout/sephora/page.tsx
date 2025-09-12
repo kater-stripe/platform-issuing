@@ -28,7 +28,8 @@ export default function SephoraCheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const merchant = DEMO_CONFIG.merchants.allowed.find(m => m.name === 'Sephora')!;
+  // Update to use wellness wallet - changing from Sephora to PureGym for SnackPack demo
+  const merchant = DEMO_CONFIG.merchants.wellness.find(m => m.name === 'PureGym')!;
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {

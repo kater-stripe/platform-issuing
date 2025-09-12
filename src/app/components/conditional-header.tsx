@@ -12,18 +12,20 @@ export function ConditionalHeader() {
 
   return (
     <header className="w-full">
-      <div 
-        className="w-full h-32 flex items-center justify-center"
-        style={{
-          background: 'linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)'
-        }}
-      >
+      <div className="w-full h-32 flex items-center justify-center bg-pluxee-gradient">
         <div className="text-center text-white">
-          <h1 className="text-2xl md:text-3xl font-bold opacity-90">
-            Stripe Connect & Issuing Demo
+          {/* Pluxee branding */}
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="text-sm font-semibold tracking-wider text-pluxee-green">PLUXEE</div>
+            <div className="w-1 h-1 bg-white rounded-full opacity-60"></div>
+            <div className="text-sm font-medium opacity-80">SnackPack Demo</div>
+          </div>
+          
+          <h1 className="text-xl md:text-2xl font-bold opacity-95 font-pluxee">
+            SME Benefits Platform
           </h1>
-          <p className="text-sm opacity-75 mt-1">
-            Issuing Platform Demonstration
+          <p className="text-xs opacity-70 mt-1">
+            60-day MVP • Multi-Wallet Benefits • Real-time Authorization
           </p>
         </div>
       </div>

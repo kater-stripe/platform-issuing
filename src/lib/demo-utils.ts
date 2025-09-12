@@ -16,7 +16,7 @@ export function getDefaultCardholder() {
 }
 
 export function getDefaultCard() {
-  return DEMO_CONFIG.defaults.card;
+  return DEMO_CONFIG.defaults.snackPackCard;
 }
 
 export function getDefaultFunding() {
@@ -30,11 +30,11 @@ export function getCompanyInfo() {
 
 export function getEmployeeInfo(index = 0) {
   const company = getCompanyInfo();
-  return company.employees[index] || company.employees[0]; // Olivia Dubois by default
+  return company.employees[index] || company.employees[0]; // Sophie Martin by default
 }
 
-export function getOliviaDubois() {
-  return getEmployeeInfo(0); // First employee is Olivia
+export function getSophieMartin() {
+  return getEmployeeInfo(0); // First employee is Sophie
 }
 
 export function getRandomEmployee() {
@@ -49,14 +49,23 @@ export function getRandomCompany() {
   return companies[Math.floor(Math.random() * companies.length)];
 }
 
-// Merchant helpers
+// SnackPack merchant helpers
 export function getMerchantByName(name: string) {
-  const allMerchants = [...DEMO_CONFIG.merchants.allowed, ...DEMO_CONFIG.merchants.blocked];
+  const allMerchants = [
+    ...DEMO_CONFIG.merchants.meal,
+    ...DEMO_CONFIG.merchants.transport,
+    ...DEMO_CONFIG.merchants.wellness,
+    ...DEMO_CONFIG.merchants.blocked
+  ];
   return allMerchants.find(m => m.name.toLowerCase().includes(name.toLowerCase()));
 }
 
 export function getAllowedMerchants() {
-  return DEMO_CONFIG.merchants.allowed;
+  return [
+    ...DEMO_CONFIG.merchants.meal,
+    ...DEMO_CONFIG.merchants.transport,
+    ...DEMO_CONFIG.merchants.wellness
+  ];
 }
 
 export function getBlockedMerchants() {
@@ -64,12 +73,27 @@ export function getBlockedMerchants() {
 }
 
 export function isAllowedMCC(mcc: string): boolean {
-  return DEMO_CONFIG.merchants.allowed.some(m => m.mcc === mcc);
+  const allowedMerchants = getAllowedMerchants();
+  return allowedMerchants.some(m => m.mcc === mcc);
 }
 
 export function getMerchantByMCC(mcc: string) {
-  const allMerchants = [...DEMO_CONFIG.merchants.allowed, ...DEMO_CONFIG.merchants.blocked];
+  const allMerchants = [
+    ...DEMO_CONFIG.merchants.meal,
+    ...DEMO_CONFIG.merchants.transport,
+    ...DEMO_CONFIG.merchants.wellness,
+    ...DEMO_CONFIG.merchants.blocked
+  ];
   return allMerchants.find(m => m.mcc === mcc);
+}
+
+export function getAllMerchants() {
+  return [
+    ...DEMO_CONFIG.merchants.meal,
+    ...DEMO_CONFIG.merchants.transport,
+    ...DEMO_CONFIG.merchants.wellness,
+    ...DEMO_CONFIG.merchants.blocked
+  ];
 }
 
 // MCC utilities
@@ -85,21 +109,21 @@ export function getAllMCCCodes() {
   return DEMO_CONFIG.mccCodes;
 }
 
-// Spending limits helpers
-export function getSpendingLimitPresets() {
-  return DEMO_CONFIG.spendingLimits;
+// SnackPack wallet helpers
+export function getSnackPackWallets() {
+  return DEMO_CONFIG.snackPackWallets;
 }
 
-export function getStandardEmployeeLimit() {
-  return DEMO_CONFIG.spendingLimits.find(limit => limit.name === 'Standard Employee');
+export function getMealWalletConfig() {
+  return DEMO_CONFIG.snackPackWallets.find(wallet => wallet.category === 'meal');
 }
 
-export function getManagerLimit() {
-  return DEMO_CONFIG.spendingLimits.find(limit => limit.name === 'Manager');
+export function getTransportWalletConfig() {
+  return DEMO_CONFIG.snackPackWallets.find(wallet => wallet.category === 'transport');
 }
 
-export function getExecutiveLimit() {
-  return DEMO_CONFIG.spendingLimits.find(limit => limit.name === 'Executive');
+export function getWellnessWalletConfig() {
+  return DEMO_CONFIG.snackPackWallets.find(wallet => wallet.category === 'wellness');
 }
 
 // Demo phase helpers
@@ -176,7 +200,7 @@ export function getOnboardingFormData() {
 }
 
 export function getCardholderFormData() {
-  const employee = getOliviaDubois();
+  const employee = getSophieMartin();
   return {
     name: employee.name,
     email: employee.email,

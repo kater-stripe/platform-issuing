@@ -28,7 +28,7 @@ export default function PaulCheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const merchant = DEMO_CONFIG.merchants.allowed.find(m => m.name === 'Paul')!;
+  const merchant = DEMO_CONFIG.merchants.meal.find(m => m.name === 'Paul')!;
   const mccInfo = DEMO_CONFIG.mccCodes[merchant.mcc];
 
   useEffect(() => {

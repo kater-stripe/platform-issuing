@@ -1,217 +1,297 @@
 /**
- * Demo Configuration for Stripe Connect & Issuing Live Coding Session
+ * Pluxee SnackPack Demo Configuration
  * 
- * This file contains all the pre-configured data for the demo to ensure
- * smooth live coding and allow multiple attendees to interact with the app.
+ * Configuration for Pluxee's SME-focused MVP: "SnackPack" - a modern benefits
+ * package targeting small businesses, bypassing traditional banking constraints.
  */
 
 export const DEMO_CONFIG = {
-  // Main story character
-  olivia: {
-    name: 'Olivia Dubois',
-    email: 'olivia.dubois@testlondon.co.uk',
+  // Main story character - Sophie Martin at TechStart London
+  sophie: {
+    name: 'Sophie Martin',
+    email: 'sophie.martin@techstart.london',
     phone: '+447123456789',
     address: {
-      line1: '16 Oxford Street',
-      city: 'London',
-      postal_code: 'W1C 1AA',
+      line1: '25 Shoreditch High Street',
+      city: 'London', 
+      postal_code: 'E1 6PN',
       country: 'GB'
-    }
+    },
+    role: 'Product Manager',
+    employeeId: 'TS-042'
   },
 
-  // Enterprise clients for Connect onboarding
+  // SME clients for SnackPack onboarding
   companies: [
     {
-      name: 'Test London Ltd',
-      email: 'corporate@testlondon.co.uk',
+      name: 'TechStart London',
+      email: 'benefits@techstart.london',
       country: 'GB',
       business_type: 'company' as const,
+      size: '50 employees',
+      industry: 'Technology Startup',
       business_profile: {
-        name: 'Test London Ltd',
-        url: 'https://testlondon.co.uk',
-        support_email: 'support@testlondon.co.uk',
+        name: 'TechStart London',
+        url: 'https://techstart.london',
+        support_email: 'hr@techstart.london',
         support_phone: '+442071234567',
-        product_description: 'Digital marketing and technology consulting services'
+        product_description: 'AI-powered productivity tools for remote teams'
       },
       company: {
-        name: 'Test London Ltd',
+        name: 'TechStart London',
         phone: '+442071234567',
         address: {
-          line1: '123 Tech Street',
-          line2: 'Floor 5',
+          line1: '25 Shoreditch High Street',
+          line2: 'WeWork Building, Floor 3',
           city: 'London',
-          postal_code: 'EC2A 4NE',
+          postal_code: 'E1 6PN',
           country: 'GB'
         },
-        tax_id: 'GB123456789',
+        tax_id: 'GB987654321',
         structure: 'private_corporation'
       },
       employees: [
         {
-          name: 'Olivia Dubois',
-          email: 'olivia.dubois@testlondon.co.uk',
+          name: 'Sophie Martin',
+          email: 'sophie.martin@techstart.london',
           phone: '+447123456789',
-          role: 'Marketing Manager'
+          role: 'Product Manager'
         },
         {
-          name: 'Pierre Martin',
-          email: 'pierre.martin@testlondon.co.uk', 
+          name: 'James Richardson',
+          email: 'james.richardson@techstart.london',
           phone: '+447123456790',
-          role: 'Sales Director'
+          role: 'Engineering Lead'
         },
         {
-          name: 'Sophie Laurent',
-          email: 'sophie.laurent@testlondon.co.uk',
-          phone: '+447123456791',
-          role: 'HR Manager'
+          name: 'Emma Thompson',
+          email: 'emma.thompson@techstart.london',
+          phone: '+447123456791', 
+          role: 'Head of People'
         }
       ]
     },
     {
-      name: 'Ta%fix',
-              email: 'corporate@tafix.co.uk',
+      name: 'GreenSpark Media',
+      email: 'benefits@greenspark.uk',
       country: 'GB',
       business_type: 'company' as const,
+      size: '30 employees',
+      industry: 'Digital Marketing',
       employees: [
         {
-          name: 'Jean Dupont',
-          email: 'jean.dupont@tafix.co.uk',
+          name: 'Alex Chen',
+          email: 'alex.chen@greenspark.uk',
           phone: '+447123456792',
-          role: 'Operations Manager'
+          role: 'Creative Director'
         }
       ]
     },
     {
-      name: 'Oktopost',
-              email: 'corporate@oktopost.co.uk',
-      country: 'GB', 
-      business_type: 'company' as const,
+      name: 'HealthTech Solutions',
+      email: 'hr@healthtech.solutions',
+      country: 'GB',
+      business_type: 'company' as const, 
+      size: '75 employees',
+      industry: 'Healthcare Technology',
       employees: [
         {
-          name: 'Marie Dubois',
-          email: 'marie.dubois@oktopost.co.uk',
+          name: 'Dr. Sarah Wilson',
+          email: 'sarah.wilson@healthtech.solutions',
           phone: '+447123456793',
-          role: 'Finance Director'
+          role: 'Chief Medical Officer'
         }
       ]
     }
   ],
 
-  // Merchant scenarios for issuing transactions simulation
+  // SnackPack benefit merchants - organized by wallet type
   merchants: {
-    allowed: [
+    // Meal Wallet merchants (£15 daily limit)
+    meal: [
       {
         name: 'Paul',
         mcc: '5812',
         category: 'restaurants',
-        description: 'French bakery and café chain',
+        wallet: 'meal',
+        description: 'French bakery and café chain - perfect for lunch meetings',
         logo: '🥖',
         products: [
-          { id: 'croissant', name: 'Croissant', price: 250, description: 'Fresh butter croissant' },
-          { id: 'coffee', name: 'Coffee', price: 180, description: 'Espresso coffee' },
-          { id: 'sandwich', name: 'Ham Sandwich', price: 650, description: 'Ham and butter sandwich' },
-          { id: 'salad', name: 'Caesar Salad', price: 850, description: 'Caesar salad with chicken' }
+          { id: 'business-lunch', name: 'Business Lunch Combo', price: 1250, description: 'Salad + Coffee + Pastry' },
+          { id: 'coffee', name: 'Premium Coffee', price: 380, description: 'Artisan espresso coffee' },
+          { id: 'sandwich', name: 'Gourmet Sandwich', price: 750, description: 'Fresh ingredients, perfect for quick meals' },
+          { id: 'team-snacks', name: 'Team Meeting Snacks', price: 1450, description: 'Pastries and coffee for 4 people' }
         ]
       },
+    ],
+    // Transport Wallet merchants (£100 monthly limit)
+    transport: [
       {
         name: 'Uber',
-        mcc: '4121', 
-        category: 'taxi_limousines',
-        description: 'Ride-sharing service',
+        mcc: '4121',
+        category: 'taxi_limousines', 
+        wallet: 'transport',
+        description: 'Business transportation - client meetings and events',
         logo: '🚗',
         products: [
-          { id: 'uber-x', name: 'UberX', price: 1250, description: 'Standard ride across London' },
-          { id: 'uber-pool', name: 'UberPool', price: 850, description: 'Shared ride to save money' },
-          { id: 'uber-comfort', name: 'Uber Comfort', price: 1650, description: 'Premium ride with more space' }
+          { id: 'client-meeting', name: 'Client Meeting Ride', price: 1250, description: 'Professional transport to client offices' },
+          { id: 'airport-transfer', name: 'Airport Transfer', price: 4500, description: 'Business travel to Heathrow' },
+          { id: 'conference-transport', name: 'Conference Transport', price: 800, description: 'Quick ride to industry events' }
         ]
       },
       {
-        name: 'Sephora',
-        mcc: '5977',
-        category: 'cosmetic_stores', 
-        description: 'Beauty and cosmetics retailer',
-        logo: '💄',
+        name: 'TfL Oyster',
+        mcc: '4111',
+        category: 'public_transport',
+        wallet: 'transport',
+        description: 'London public transport - sustainable commuting',
+        logo: '🚇',
         products: [
-          { id: 'lipstick', name: 'Lipstick', price: 2200, description: 'Luxury lipstick' },
-          { id: 'perfume', name: 'Perfume', price: 7500, description: 'Designer fragrance 50ml' },
-          { id: 'foundation', name: 'Foundation', price: 3200, description: 'Long-lasting foundation' },
-          { id: 'mascara', name: 'Mascara', price: 1800, description: 'Volumizing mascara' }
+          { id: 'daily-travel', name: 'Daily Zone 1-3', price: 800, description: 'Full day travel across central London' },
+          { id: 'weekly-pass', name: 'Weekly Travel Pass', price: 4200, description: 'Unlimited weekly travel' }
+        ]
+      },
+    ],
+    // Wellness Wallet merchants (£50 monthly limit)
+    wellness: [
+      {
+        name: 'PureGym',
+        mcc: '7997',
+        category: 'fitness_wellness',
+        wallet: 'wellness',
+        description: 'Employee fitness and wellbeing - mental health support',
+        logo: '💪',
+        products: [
+          { id: 'gym-membership', name: 'Monthly Gym Access', price: 2999, description: 'Full gym access + classes' },
+          { id: 'personal-training', name: 'Personal Training Session', price: 4500, description: '1-on-1 fitness coaching' },
+          { id: 'wellness-class', name: 'Yoga/Meditation Class', price: 1800, description: 'Stress relief and mindfulness' }
+        ]
+      },
+      {
+        name: 'Boots Pharmacy',
+        mcc: '5912',
+        category: 'health_pharmacy',
+        wallet: 'wellness',
+        description: 'Health essentials and workplace wellness',
+        logo: '🏥',
+        products: [
+          { id: 'health-checkup', name: 'Health MOT', price: 3500, description: 'Comprehensive health screening' },
+          { id: 'eye-test', name: 'Eye Test & Glasses', price: 2500, description: 'Vision care for screen work' },
+          { id: 'wellness-vitamins', name: 'Workplace Wellness Pack', price: 1200, description: 'Vitamins and supplements' }
         ]
       }
     ],
+    // Blocked merchants (compliance and policy)
     blocked: [
       {
-        name: 'Gas Station',
+        name: 'Shell Petrol Station',
         mcc: '5541',
         category: 'gas_stations',
-        description: 'Gas station (blocked by policy)',
+        wallet: 'blocked',
+        description: 'Fuel purchases (not covered by SnackPack benefits)',
         logo: '⛽',
         products: [
-          { id: 'gasoline', name: 'Unleaded Petrol', price: 6500, description: '50L unleaded petrol' },
-          { id: 'diesel', name: 'Diesel', price: 6200, description: '50L diesel fuel' },
-          { id: 'snacks', name: 'Snacks', price: 350, description: 'Convenience store items' }
+          { id: 'petrol', name: 'Petrol Fill-up', price: 6500, description: 'Personal fuel - not a business benefit' },
+          { id: 'car-wash', name: 'Car Wash', price: 1200, description: 'Vehicle maintenance' }
         ]
       },
       {
-        name: 'Casino',
-        mcc: '7995',
+        name: 'Grosvenor Casino',
+        mcc: '7995', 
         category: 'gambling',
-        description: 'Casino (blocked by policy)',
+        wallet: 'blocked',
+        description: 'Gambling (compliance policy - always blocked)',
         logo: '🎰',
         products: [
-          { id: 'chips', name: 'Casino Chips', price: 10000, description: '£100 in casino chips' }
+          { id: 'casino-chips', name: 'Casino Chips', price: 5000, description: 'Entertainment gambling' }
+        ]
+      },
+      {
+        name: 'Harrods Luxury',
+        mcc: '5311',
+        category: 'luxury_retail',
+        wallet: 'blocked', 
+        description: 'High-end retail (outside SnackPack scope)',
+        logo: '💎',
+        products: [
+          { id: 'luxury-watch', name: 'Designer Watch', price: 250000, description: 'Personal luxury item' }
         ]
       }
     ]
   },
 
-  // Spending control presets
-  spendingLimits: [
+  // SnackPack benefit wallet limits (designed for SMEs)
+  snackPackWallets: [
     {
-      name: 'Standard Employee',
+      name: 'Meal Wallet',
+      category: 'meal',
+      description: 'Business meals, coffee, and team snacks',
       limits: [
-        { amount: 50000, interval: 'monthly' as const }, // €500/month
-        { amount: 2500, interval: 'daily' as const }     // €25/day
-      ]
+        { amount: 1500, interval: 'daily' as const },    // £15/day
+        { amount: 32500, interval: 'monthly' as const }   // £325/month (£15 x 21.5 working days)
+      ],
+      allowedMccs: ['5812', '5814', '5499'], // Restaurants, fast food, misc food
+      icon: '🍽️',
+      color: '#00EB5E'
     },
     {
-      name: 'Manager',
+      name: 'Transport Wallet', 
+      category: 'transport',
+      description: 'Business travel, client meetings, conferences',
       limits: [
-        { amount: 150000, interval: 'monthly' as const }, // €1500/month
-        { amount: 7500, interval: 'daily' as const }      // €75/day
-      ]
+        { amount: 10000, interval: 'monthly' as const }   // £100/month
+      ],
+      allowedMccs: ['4121', '4111', '4131'], // Taxi, public transport, bus
+      icon: '🚗',
+      color: '#88DDFA'
     },
     {
-      name: 'Executive',
+      name: 'Wellness Wallet',
+      category: 'wellness', 
+      description: 'Employee health, fitness, and wellbeing',
       limits: [
-        { amount: 300000, interval: 'monthly' as const }, // €3000/month
-        { amount: 15000, interval: 'daily' as const }     // €150/day
-      ]
+        { amount: 5000, interval: 'monthly' as const }    // £50/month
+      ],
+      allowedMccs: ['7997', '5912', '7298'], // Fitness, pharmacy, health services
+      icon: '💪',
+      color: '#FDEEC1'
     }
   ],
 
-  // MCC (Merchant Category Code) definitions
+  // SnackPack MCC definitions by wallet type
   mccCodes: {
-    '5812': { name: 'Restaurants', allowed: true, icon: '🍽️' },
-    '4121': { name: 'Taxi & Limousines', allowed: true, icon: '🚕' },
-    '5977': { name: 'Cosmetic Stores', allowed: true, icon: '💄' },
-    '5541': { name: 'Gas Stations', allowed: false, icon: '⛽' },
-    '7995': { name: 'Gambling', allowed: false, icon: '🎰' },
-    '5411': { name: 'Grocery Stores', allowed: true, icon: '🛒' },
-    '3000': { name: 'Airlines', allowed: true, icon: '✈️' },
-    '7011': { name: 'Hotels', allowed: true, icon: '🏨' }
-  } as Record<string, { name: string; allowed: boolean; icon: string }>,
+    // Meal Wallet MCCs
+    '5812': { name: 'Restaurants', wallet: 'meal', allowed: true, icon: '🍽️' },
+    '5814': { name: 'Fast Food', wallet: 'meal', allowed: true, icon: '🍔' },
+    '5499': { name: 'Misc Food Stores', wallet: 'meal', allowed: true, icon: '🥪' },
+    
+    // Transport Wallet MCCs  
+    '4121': { name: 'Taxi & Limousines', wallet: 'transport', allowed: true, icon: '🚕' },
+    '4111': { name: 'Public Transport', wallet: 'transport', allowed: true, icon: '🚇' },
+    '4131': { name: 'Bus Lines', wallet: 'transport', allowed: true, icon: '🚌' },
+    
+    // Wellness Wallet MCCs
+    '7997': { name: 'Fitness & Recreation', wallet: 'wellness', allowed: true, icon: '💪' },
+    '5912': { name: 'Drug Stores & Pharmacies', wallet: 'wellness', allowed: true, icon: '🏥' },
+    '7298': { name: 'Health & Beauty Spas', wallet: 'wellness', allowed: true, icon: '🧘' },
+    
+    // Blocked MCCs
+    '5541': { name: 'Gas Stations', wallet: 'blocked', allowed: false, icon: '⛽' },
+    '7995': { name: 'Gambling', wallet: 'blocked', allowed: false, icon: '🎰' },
+    '5311': { name: 'Department Stores', wallet: 'blocked', allowed: false, icon: '🏪' },
+    '5921': { name: 'Package Stores-Beer/Wine/Liquor', wallet: 'blocked', allowed: false, icon: '🍷' }
+  } as Record<string, { name: string; wallet: string; allowed: boolean; icon: string }>,
 
-  // Webhook events to highlight during demo
+  // SnackPack webhook events for SME insights
   relevantWebhookEvents: [
-    'issuing_authorization.request',   // Real-time authorization requests (must respond within 2s)
-    'issuing_authorization.created',
-    'issuing_authorization.updated',
-    'issuing_card.created',
-    'issuing_cardholder.created', 
-    'issuing_transaction.created',
-    'account.updated',
-    'account.external_account.created'
+    'issuing_authorization.request',   // Real-time SnackPack benefit decisions
+    'issuing_authorization.created',   // Benefit usage tracking
+    'issuing_authorization.updated',   // Spending pattern changes
+    'issuing_card.created',            // New employee onboarding
+    'issuing_cardholder.created',      // Team growth tracking
+    'issuing_transaction.created',     // Benefit utilization analytics
+    'account.updated',                 // SME account status changes
+    'account.external_account.created' // Funding method updates
   ],
 
   // Demo phases and their completion status
@@ -278,15 +358,17 @@ export const DEMO_CONFIG = {
     }
   },
 
-  // UI constants
+  // Pluxee brand UI constants
   ui: {
     colors: {
-      primary: '#00B894',      // Brand green
-      secondary: '#2D3748',    // Dark gray
-      success: '#48BB78',      // Success green
-      error: '#F56565',        // Error red
-      warning: '#ED8936',      // Warning orange
-      info: '#4299E1'          // Info blue
+      primary: '#221C46',      // Pluxee navy
+      secondary: '#00EB5E',    // Pluxee green
+      accent: '#88DDFA',       // Pluxee light blue
+      tertiary: '#FDEEC1',     // Pluxee soft yellow
+      success: '#00EB5E',      // Success (Pluxee green)
+      error: '#DC2626',        // Error red
+      warning: '#F59E0B',      // Warning amber
+      info: '#88DDFA'          // Info (Pluxee blue)
     },
     breakpoints: {
       sm: '640px',
@@ -296,41 +378,52 @@ export const DEMO_CONFIG = {
     }
   },
 
-  // Default form values for quick demo
+  // SnackPack default values for quick demo
   defaults: {
     cardholder: {
-      name: 'Olivia Dubois',
-      email: 'olivia.dubois@testlondon.co.uk',
+      name: 'Sophie Martin',
+      email: 'sophie.martin@techstart.london',
       phone_number: '+447123456789',
       billing: {
         address: {
-          line1: '16 Oxford Street',
+          line1: '25 Shoreditch High Street',
           city: 'London',
-          postal_code: 'W1C 1AA',
+          postal_code: 'E1 6PN',
           country: 'GB'
         }
-      }
+      },
+      role: 'Product Manager',
+      department: 'Product'
     },
-    card: {
+    snackPackCard: {
       currency: 'gbp',
       type: 'virtual' as const,
       spending_controls: {
-        allowed_categories: ['restaurants', 'taxi_limousines', 'cosmetic_stores'],
-        spending_limits: [
-          { amount: 500000, interval: 'monthly' as const }, // £5000/month
-          { amount: 25000, interval: 'daily' as const }     // £250/day
-        ]
+        // Multi-wallet structure
+        meal_wallet: {
+          daily_limit: 1500,   // £15/day
+          monthly_limit: 32500, // £325/month
+          allowed_mccs: ['5812', '5814', '5499']
+        },
+        transport_wallet: {
+          monthly_limit: 10000, // £100/month 
+          allowed_mccs: ['4121', '4111', '4131']
+        },
+        wellness_wallet: {
+          monthly_limit: 5000,  // £50/month
+          allowed_mccs: ['7997', '5912', '7298']
+        }
       }
     },
     funding: {
-      amount: 100000, // £1000
+      amount: 200000, // £2000 (SME-appropriate starting amount)
       currency: 'gbp',
-      description: 'Demo funding for corporate cards'
+      description: 'SnackPack pilot funding for TechStart London'
     }
   }
 };
 
-// Utility functions for the demo
+// SnackPack utility functions
 export const demoUtils = {
   formatCurrency: (amount: number, currency = 'GBP') => {
     return new Intl.NumberFormat('en-GB', {
@@ -349,31 +442,53 @@ export const demoUtils = {
   getMCCInfo: (mcc: string) => {
     return DEMO_CONFIG.mccCodes[mcc] || { 
       name: `MCC ${mcc}`, 
+      wallet: 'unknown',
       allowed: false, 
       icon: '❓' 
     };
   },
 
-  getRandomEmployee: () => {
+  getWalletFromMCC: (mcc: string) => {
+    const mccInfo = DEMO_CONFIG.mccCodes[mcc];
+    return mccInfo?.wallet || 'blocked';
+  },
+
+  getWalletConfig: (walletType: string) => {
+    return DEMO_CONFIG.snackPackWallets.find(w => w.category === walletType);
+  },
+
+  getRandomSMEEmployee: () => {
     const companies = DEMO_CONFIG.companies;
     const randomCompany = companies[Math.floor(Math.random() * companies.length)];
     const employees = randomCompany.employees;
     return employees[Math.floor(Math.random() * employees.length)];
   },
 
-  getRandomCompany: () => {
+  getRandomSME: () => {
     const companies = DEMO_CONFIG.companies;
     return companies[Math.floor(Math.random() * companies.length)];
   },
 
-  generateCardNumber: () => {
-    // Generate last 4 digits for display
+  generateSnackPackCardNumber: () => {
+    // Generate last 4 digits for SnackPack cards
     return Math.floor(1000 + Math.random() * 9000).toString();
+  },
+
+  calculateTotalSnackPackLimit: () => {
+    return DEMO_CONFIG.snackPackWallets.reduce((total, wallet) => {
+      const monthlyLimit = wallet.limits.find(l => l.interval === 'monthly')?.amount || 0;
+      return total + monthlyLimit;
+    }, 0);
   }
 };
 
 export type DemoConfig = typeof DEMO_CONFIG;
 export type DemoPhase = typeof DEMO_CONFIG.demoPhases[0];
-export type Merchant = typeof DEMO_CONFIG.merchants.allowed[0];
-export type Company = typeof DEMO_CONFIG.companies[0];
-export type Employee = typeof DEMO_CONFIG.companies[0]['employees'][0]; 
+export type SnackPackWallet = typeof DEMO_CONFIG.snackPackWallets[0];
+export type SMECompany = typeof DEMO_CONFIG.companies[0];
+export type SMEEmployee = typeof DEMO_CONFIG.companies[0]['employees'][0];
+
+// Legacy exports for backward compatibility
+export type Merchant = typeof DEMO_CONFIG.merchants.meal[0];
+export type Company = SMECompany;
+export type Employee = SMEEmployee; 
